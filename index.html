@@ -56,6 +56,21 @@
             white-space: nowrap;
             text-shadow: 0 1px 2px rgba(0,0,0,0.8);
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        /* Ion Charge Badge Accent inside label */
+        .charge-badge {
+            background: #ef4444;
+            color: white;
+            font-size: 10px;
+            padding: 0px 4px;
+            border-radius: 3px;
+            font-weight: 800;
+        }
+        .charge-badge.positive {
+            background: #10b981;
         }
         /* Custom scrollbar for left side panel */
         ::-webkit-scrollbar {
@@ -99,7 +114,7 @@
     <!-- Main Workspace -->
     <main class="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-6 p-6 overflow-hidden h-[calc(100vh-73px)]">
         
-        <!-- Left Panel: Input & Properties (Scrollable inside) -->
+        <!-- Left Panel: Input & Properties -->
         <div class="lg:col-span-4 flex flex-col gap-4 h-full overflow-y-auto pr-1">
             
             <!-- Compound Input Panel -->
@@ -204,7 +219,6 @@
 
     <!-- Three.js Visualizer Engine -->
     <script>
-        // Complete Periodic Table Database (s, p, and d blocks)
         const PERIODIC_TABLE = {
             'H':  { name: 'Hydrogen', valence: 1, maxBonds: 1, color: 0xFFFFFF },
             'HE': { name: 'Helium', valence: 2, maxBonds: 0, color: 0xD9FFFF },
@@ -260,22 +274,6 @@
             'XE': { name: 'Xenon', valence: 8, maxBonds: 6, color: 0x429EB0 }
         };
 
-        function clearFormula() {
-            document.getElementById('formulaInput').value = '';
-            hideError();
-        }
-
-        function showError(message) {
-            const errorBox = document.getElementById('errorBox');
-            const errorMessage = document.getElementById('errorMessage');
-            errorMessage.innerText = message;
-            errorBox.classList.remove('hidden');
-        }
-
-        function hideError() {
-            document.getElementById('errorBox').classList.add('hidden');
-        }
-
         let scene, camera, renderer, labelRenderer, controls, compoundGroup;
         let autoSpin = true;
 
@@ -296,7 +294,6 @@
             renderer.shadowMap.enabled = true;
             container.appendChild(renderer.domElement);
 
-            // CSS 2D Label Renderer
             labelRenderer = new THREE.CSS2DRenderer();
             labelRenderer.setSize(width, height);
             labelRenderer.domElement.style.position = 'absolute';
@@ -367,7 +364,6 @@
             const r = 2.8; 
             
             if (steric === 1) {
-                // Diatomic molecules (like NaCl, HCl, HF)
                 positions.push(new THREE.Vector3(r, 0, 0));
             }
             else if (steric === 2) {
@@ -403,21 +399,20 @@
             return positions;
         }
 
-        // Upgraded Chemistry Parser supporting Ions, Charges, and Homonuclear Species
         function parseFormulaChemically(formula) {
-            // 1. Extract and normalize charges (e.g., PO4 3- or NO2 - or I3-)
             let charge = 0;
-            let workingFormula = formula.replace(/\s+/g, ''); // Remove spaces
+            let chargeString = "";
+            let workingFormula = formula.replace(/\s+/g, ''); 
             
             const chargeMatch = workingFormula.match(/([0-9]*)([\+\-])+$/);
             if (chargeMatch) {
                 const sign = chargeMatch[2];
                 const amount = chargeMatch[1] ? parseInt(chargeMatch[1]) : 1;
                 charge = (sign === '+') ? amount : -amount;
-                workingFormula = workingFormula.substring(0, chargeMatch.index); // Strip charge
+                chargeString = (amount > 1 ? amount : "") + sign;
+                workingFormula = workingFormula.substring(0, chargeMatch.index); 
             }
 
-            // 2. Parse Elements and counts
             const pattern = /([A-Z][a-z]?)(\d*)/g;
             const parsedElements = [];
             let match;
@@ -429,22 +424,19 @@
             }
 
             if (parsedElements.length === 0) {
-                return { error: "Please enter a valid chemical formula (e.g., PO4 3-, I3-, NaCl)." };
+                return { error: "Please enter a valid chemical formula (e.g., PO4 3-, ClO-, NaCl)." };
             }
 
-            // Validate periodic table presence
             for (let el of parsedElements) {
                 if (!PERIODIC_TABLE[el.element.toUpperCase()]) {
                     return { error: `Element symbol "${el.element}" is not valid.` };
                 }
             }
 
-            // 3. Determine Central vs. Ligand Atoms
             let centralSymbol = '';
             let ligandsList = [];
             
             if (parsedElements.length === 1) {
-                // Homonuclear molecule (e.g. O3 or I3 or F2)
                 const singleSymbol = parsedElements[0].element;
                 if (parsedElements[0].count < 2) {
                     return { error: "Formulas require at least two atoms to visualize bonds." };
@@ -452,8 +444,6 @@
                 centralSymbol = singleSymbol;
                 ligandsList.push({ element: singleSymbol, count: parsedElements[0].count - 1 });
             } else {
-                // Heteronuclear (e.g., PO4, NaCl)
-                // Select first element (or second if first is Hydrogen and there are options)
                 let centralIdx = 0;
                 if (parsedElements[0].element.toUpperCase() === 'H' && parsedElements.length > 1) {
                     centralIdx = 1; 
@@ -476,24 +466,18 @@
             }
 
             const ligandAtom = PERIODIC_TABLE[ligandSymbol.toUpperCase()];
-
-            // 4. Valence & VSEPR Calculations with Ion Support
-            // Add/Subtract charge electrons from central valence pool (Anion: add; Cation: subtract)
             let centralValence = centralAtom.valence - charge;
             
-            // Limit bounds checks
             if (centralValence < 0) {
-                return { error: `Positive charge is too high. Element "${centralAtom.name}" does not possess enough electrons.` };
+                return { error: `Positive charge too high.` };
             }
 
-            // Calculate Steric Number
             let remainingValenceElectrons = centralValence - totalLigands;
             let lonePairs = Math.max(0, Math.floor(remainingValenceElectrons / 2));
             let steric = totalLigands + lonePairs;
 
-            // Enforce hard constraints on render engine
             if (steric > 6) {
-                return { error: `Steric number (${steric}) of this configuration exceeds visualizer rendering limits (Max: 6).` };
+                return { error: `Steric number (${steric}) exceeds layout limit.` };
             }
 
             return {
@@ -502,6 +486,8 @@
                 ligand: ligandSymbol,
                 steric: steric,
                 lonePairs: lonePairs,
+                charge: charge,
+                chargeString: chargeString,
                 geometry: getGeometryName(steric, lonePairs),
                 electronGeom: getGeometryName(steric, 0),
                 hybridization: getHybridization(steric)
@@ -536,10 +522,24 @@
             return hybs[steric] || 'Unknown';
         }
 
-        function createAtomLabel(text, position) {
+        // Modified label generator to support embedded HTML charge accents
+        function createAtomLabel(text, position, chargeStr = "") {
             const div = document.createElement('div');
             div.className = 'atom-label';
-            div.textContent = text;
+            
+            // Text base content node
+            const nameSpan = document.createElement('span');
+            nameSpan.textContent = text;
+            div.appendChild(nameSpan);
+
+            // Add dynamic badge node if charge is discovered
+            if (chargeStr) {
+                const badge = document.createElement('span');
+                badge.className = `charge-badge ${chargeStr.includes('+') ? 'positive' : ''}`;
+                badge.textContent = chargeStr;
+                div.appendChild(badge);
+            }
+
             const label = new THREE.CSS2DObject(div);
             label.position.copy(position);
             return label;
@@ -559,7 +559,7 @@
         function buildMolecule(config) {
             clearSceneAndLabels();
 
-            const { central, ligand, steric, lonePairs } = config;
+            const { central, ligand, steric, lonePairs, chargeString } = config;
             const centralColor = PERIODIC_TABLE[central.toUpperCase()]?.color || 0x9E9E9E;
             const ligandColor = PERIODIC_TABLE[ligand.toUpperCase()]?.color || 0x9E9E9E;
 
@@ -573,7 +573,8 @@
             const centralAtomMesh = new THREE.Mesh(centralGeometry, centralMaterial);
             compoundGroup.add(centralAtomMesh);
 
-            const centralLabel = createAtomLabel(central, new THREE.Vector3(0, 1.3, 0));
+            // Forward the structural charge parameter string into the central anchor label
+            const centralLabel = createAtomLabel(central, new THREE.Vector3(0, 1.3, 0), chargeString);
             centralAtomMesh.add(centralLabel);
 
             const coords = getCoordinates(steric);
@@ -663,6 +664,11 @@
             document.getElementById('propLone').innerText = `${config.lonePairs} Domains`;
         }
 
+        function clearFormula() {
+            document.getElementById('formulaInput').value = '';
+            hideError();
+        }
+
         function visualizeInput() {
             const rawFormula = document.getElementById('formulaInput').value.trim();
             if (!rawFormula) return;
@@ -687,7 +693,7 @@
 
         window.onload = () => {
             init3D();
-            document.getElementById('formulaInput').value = 'H2O';
+            document.getElementById('formulaInput').value = 'ClO -';
             visualizeInput();
         };
     </script>
