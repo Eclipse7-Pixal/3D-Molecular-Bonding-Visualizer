@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ECLIPSE7 | 3D Molecular Bonding Visualizer</title>
     <!-- Tailwind CSS -->
+    <link rel="icon" type="image/x-icon" href="logo.ico">
+    <!-- Inside the <head> section -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -76,9 +78,13 @@
     <!-- Header Navigation -->
     <header class="glassmorphism sticky top-0 z-50 px-6 py-3.5 flex items-center justify-between border-b border-white/5">
         <div class="flex items-center space-x-3">
-            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/20">
-                <i class="fa-solid fa-atom text-white text-xl"></i>
-            </div>
+           <!-- Locate this block in your <header>: -->
+           <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/20">
+               <i class="fa-solid fa-atom text-white text-xl"></i>
+           </div>
+
+           <!-- Replace it with this: -->
+           <img src="logo.ico" alt="ECLIPSE7 Logo" class="w-10 h-10 rounded-xl object-contain shadow-lg shadow-indigo-500/10">
             <div>
                 <div class="flex items-center gap-1.5">
                     <h1 class="text-lg font-bold tracking-tight bg-gradient-to-r from-white via-gray-200 to-gray-400 bg-clip-text text-transparent">ECLIPSE7</h1>
