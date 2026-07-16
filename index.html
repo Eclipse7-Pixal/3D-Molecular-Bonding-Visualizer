@@ -4,15 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ECLIPSE7 | 3D Molecular Bonding Visualizer</title>
-    <!-- Tailwind CSS for modern glassmorphic styling -->
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome for clean iconography -->
+    <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
-    <!-- Three.js and OrbitControls -->
+    <!-- Three.js + OrbitControls + CSS2DRenderer for Atom Labels -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/renderers/CSS2DRenderer.js"></script>
     
     <style>
         body {
@@ -36,6 +37,22 @@
         .glass-input:focus {
             border-color: #6366f1;
             box-shadow: 0 0 15px rgba(99, 102, 241, 0.2);
+            outline: none;
+        }
+        /* Style for 3D overlay labels */
+        .atom-label {
+            color: #ffffff;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: bold;
+            font-size: 14px;
+            background: rgba(0, 0, 0, 0.75);
+            padding: 3px 8px;
+            border-radius: 6px;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            pointer-events: none;
+            white-space: nowrap;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.5);
         }
         /* Custom scrollbar */
         ::-webkit-scrollbar {
@@ -59,10 +76,14 @@
     <header class="glassmorphism sticky top-0 z-50 px-6 py-4 flex items-center justify-between border-b border-white/5">
         <div class="flex items-center space-x-3">
             <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/20">
-                <i class="fa-solid fa-atom text-white text-xl animate-spin-slow"></i>
+                <i class="fa-solid fa-atom text-white text-xl"></i>
             </div>
             <div>
-                <h1 class="text-lg font-bold tracking-tight bg-gradient-to-r from-white via-gray-200 to-gray-400 bg-clip-text text-transparent">ECLIPSE7</h1>
+                <div class="flex items-center gap-1.5">
+                    <h1 class="text-lg font-bold tracking-tight bg-gradient-to-r from-white via-gray-200 to-gray-400 bg-clip-text text-transparent">ECLIPSE7</h1>
+                    <span class="text-xs text-gray-400 font-medium">by Saiprasad Barure</span>
+                    <i class="fa-solid fa-circle-check text-blue-500 text-xs shadow-sm" title="Verified Creator"></i>
+                </div>
                 <p class="text-xs text-indigo-400 font-medium">3D Molecular Geometry Visualizer</p>
             </div>
         </div>
@@ -74,7 +95,7 @@
     </header>
 
     <!-- Main Workspace -->
-    <main class="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-6 p-6 max-h-[calc(100vh-160px)] overflow-hidden">
+    <main class="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-6 p-6 max-h-[calc(100vh-100px)] overflow-hidden">
         
         <!-- Left Panel: Input & Analytical Properties -->
         <div class="lg:col-span-4 flex flex-col gap-5 h-full overflow-y-auto pr-1">
@@ -82,12 +103,19 @@
             <!-- Compound Input Panel -->
             <div class="glassmorphism rounded-2xl p-5 flex flex-col gap-4">
                 <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wider flex items-center gap-2">
-                    <i class="fa-solid fa-keyboard text-indigo-400"></i> Target Compound Formula
+                    <i class="fa-solid fa-keyboard text-indigo-400"></i> Type Compound Formula
                 </h2>
                 <div class="relative">
-                    <input type="text" id="formulaInput" placeholder="e.g., H2O, SF6, NH3" readonly
-                        class="w-full text-2xl font-bold tracking-wider py-4 px-5 rounded-xl glass-input text-white text-center cursor-default uppercase">
+                    <input type="text" id="formulaInput" placeholder="Enter H2O, SF6, NH3, CO2..." 
+                        class="w-full text-2xl font-bold tracking-wider py-4 px-5 rounded-xl glass-input text-white text-center uppercase">
                 </div>
+                
+                <!-- Chemical Error Output Warning -->
+                <div id="errorBox" class="hidden bg-red-500/10 border border-red-500/30 rounded-xl p-3 text-xs text-red-400 flex items-start gap-2">
+                    <i class="fa-solid fa-triangle-exclamation mt-0.5"></i>
+                    <span id="errorMessage">Invalid Compound.</span>
+                </div>
+
                 <div class="grid grid-cols-2 gap-3">
                     <button onclick="clearFormula()" class="py-2.5 rounded-lg bg-red-500/10 border border-red-500/20 hover:bg-red-500/20 text-red-400 font-semibold text-xs transition duration-200">
                         <i class="fa-solid fa-trash-can mr-1.5"></i> CLEAR ALL
@@ -109,27 +137,27 @@
                     <div class="grid grid-cols-2 gap-3 mb-6">
                         <div class="bg-white/5 border border-white/5 p-3 rounded-xl">
                             <span class="text-xs text-gray-400 block mb-1">Compound Name</span>
-                            <span id="propName" class="font-semibold text-sm text-indigo-300">Water</span>
+                            <span id="propName" class="font-semibold text-sm text-indigo-300">-</span>
                         </div>
                         <div class="bg-white/5 border border-white/5 p-3 rounded-xl">
                             <span class="text-xs text-gray-400 block mb-1">Electron Geometry</span>
-                            <span id="propElectronGeom" class="font-semibold text-sm text-indigo-300">Tetrahedral</span>
+                            <span id="propElectronGeom" class="font-semibold text-sm text-indigo-300">-</span>
                         </div>
                         <div class="bg-white/5 border border-white/5 p-3 rounded-xl">
                             <span class="text-xs text-gray-400 block mb-1">Molecular Geometry</span>
-                            <span id="propMolecularGeom" class="font-semibold text-sm text-indigo-300">Bent</span>
+                            <span id="propMolecularGeom" class="font-semibold text-sm text-indigo-300">-</span>
                         </div>
                         <div class="bg-white/5 border border-white/5 p-3 rounded-xl">
                             <span class="text-xs text-gray-400 block mb-1">Hybridization</span>
-                            <span id="propHybrid" class="font-semibold text-sm code-font text-indigo-300">sp³</span>
+                            <span id="propHybrid" class="font-semibold text-sm code-font text-indigo-300">-</span>
                         </div>
                         <div class="bg-white/5 border border-white/5 p-3 rounded-xl">
                             <span class="text-xs text-gray-400 block mb-1">Bonding Domains</span>
-                            <span id="propBonds" class="font-semibold text-sm text-indigo-300">2 Pairs</span>
+                            <span id="propBonds" class="font-semibold text-sm text-indigo-300">-</span>
                         </div>
                         <div class="bg-white/5 border border-white/5 p-3 rounded-xl">
                             <span class="text-xs text-gray-400 block mb-1">Lone Domains</span>
-                            <span id="propLone" class="font-semibold text-sm text-indigo-300">2 Pairs</span>
+                            <span id="propLone" class="font-semibold text-sm text-indigo-300">-</span>
                         </div>
                     </div>
                 </div>
@@ -142,7 +170,7 @@
                         <div class="flex items-center gap-2"><span class="w-3.5 h-3.5 rounded-full bg-slate-100 border border-slate-300 inline-block"></span> Hydrogen (H)</div>
                         <div class="flex items-center gap-2"><span class="w-3.5 h-3.5 rounded-full bg-neutral-800 inline-block"></span> Carbon (C)</div>
                         <div class="flex items-center gap-2"><span class="w-3.5 h-3.5 rounded-full bg-blue-500 inline-block"></span> Nitrogen (N)</div>
-                        <div class="flex items-center gap-2"><span class="w-3.5 h-3.5 rounded-full bg-green-500 inline-block"></span> Halogens (F/Cl)</div>
+                        <div class="flex items-center gap-2"><span class="w-3.5 h-3.5 rounded-full bg-green-500 inline-block"></span> Halogens (F/Cl/Br/I)</div>
                         <div class="flex items-center gap-2"><span class="w-3.5 h-3.5 rounded-full bg-amber-400 inline-block"></span> Sulfur (S)</div>
                         <div class="flex items-center gap-2"><span class="w-3.5 h-3.5 rounded-full bg-fuchsia-500 opacity-60 inline-block"></span> Lone Pair Lobe</div>
                     </div>
@@ -166,87 +194,41 @@
             </div>
             
             <div class="absolute bottom-4 right-4 bg-black/75 px-3 py-1.5 rounded-md border border-white/5 text-[11px] text-gray-400">
-                <i class="fa-solid fa-circle-info mr-1 text-indigo-400"></i> Touch or Drag to spin. Scroll to Zoom.
+                <i class="fa-solid fa-circle-info mr-1 text-indigo-400"></i> Touch or drag to spin. Scroll to zoom.
             </div>
         </div>
 
     </main>
 
-    <!-- Custom Chemical Keyboard Container -->
-    <footer class="w-full glassmorphism border-t border-white/5 p-4 z-40 transition-transform duration-300 transform translate-y-0">
-        <div class="max-w-4xl mx-auto flex flex-col gap-3">
-            <div class="flex items-center justify-between border-b border-white/5 pb-2">
-                <span class="text-xs font-semibold text-indigo-400 tracking-wider uppercase flex items-center gap-2">
-                    <i class="fa-solid fa-flask"></i> Interactive Chemical Elements Keyboard
-                </span>
-                <span class="text-[10px] text-gray-400">Select components to draft formulas safely.</span>
-            </div>
-            
-            <div class="flex flex-col gap-2">
-                <!-- Elements Row -->
-                <div class="flex flex-wrap gap-1.5 justify-center">
-                    <button onclick="appendChar('H')" class="px-3.5 py-2.5 rounded-lg bg-white/5 border border-white/10 hover:bg-indigo-600/30 hover:border-indigo-500/50 text-sm font-bold transition duration-150">H</button>
-                    <button onclick="appendChar('He')" class="px-3.5 py-2.5 rounded-lg bg-white/5 border border-white/10 hover:bg-indigo-600/30 hover:border-indigo-500/50 text-sm font-bold transition duration-150">He</button>
-                    <button onclick="appendChar('Be')" class="px-3.5 py-2.5 rounded-lg bg-white/5 border border-white/10 hover:bg-indigo-600/30 hover:border-indigo-500/50 text-sm font-bold transition duration-150">Be</button>
-                    <button onclick="appendChar('B')" class="px-3.5 py-2.5 rounded-lg bg-white/5 border border-white/10 hover:bg-indigo-600/30 hover:border-indigo-500/50 text-sm font-bold transition duration-150">B</button>
-                    <button onclick="appendChar('C')" class="px-3.5 py-2.5 rounded-lg bg-white/5 border border-white/10 hover:bg-indigo-600/30 hover:border-indigo-500/50 text-sm font-bold transition duration-150">C</button>
-                    <button onclick="appendChar('N')" class="px-3.5 py-2.5 rounded-lg bg-white/5 border border-white/10 hover:bg-indigo-600/30 hover:border-indigo-500/50 text-sm font-bold transition duration-150">N</button>
-                    <button onclick="appendChar('O')" class="px-3.5 py-2.5 rounded-lg bg-white/5 border border-white/10 hover:bg-indigo-600/30 hover:border-indigo-500/50 text-sm font-bold transition duration-150">O</button>
-                    <button onclick="appendChar('F')" class="px-3.5 py-2.5 rounded-lg bg-white/5 border border-white/10 hover:bg-indigo-600/30 hover:border-indigo-500/50 text-sm font-bold transition duration-150">F</button>
-                    <button onclick="appendChar('P')" class="px-3.5 py-2.5 rounded-lg bg-white/5 border border-white/10 hover:bg-indigo-600/30 hover:border-indigo-500/50 text-sm font-bold transition duration-150">P</button>
-                    <button onclick="appendChar('S')" class="px-3.5 py-2.5 rounded-lg bg-white/5 border border-white/10 hover:bg-indigo-600/30 hover:border-indigo-500/50 text-sm font-bold transition duration-150">S</button>
-                    <button onclick="appendChar('Cl')" class="px-3.5 py-2.5 rounded-lg bg-white/5 border border-white/10 hover:bg-indigo-600/30 hover:border-indigo-500/50 text-sm font-bold transition duration-150">Cl</button>
-                    <button onclick="appendChar('Br')" class="px-3.5 py-2.5 rounded-lg bg-white/5 border border-white/10 hover:bg-indigo-600/30 hover:border-indigo-500/50 text-sm font-bold transition duration-150">Br</button>
-                    <button onclick="appendChar('I')" class="px-3.5 py-2.5 rounded-lg bg-white/5 border border-white/10 hover:bg-indigo-600/30 hover:border-indigo-500/50 text-sm font-bold transition duration-150">I</button>
-                    <button onclick="appendChar('Xe')" class="px-3.5 py-2.5 rounded-lg bg-white/5 border border-white/10 hover:bg-indigo-600/30 hover:border-indigo-500/50 text-sm font-bold transition duration-150">Xe</button>
-                </div>
-                
-                <!-- Subscripts & Controls Row -->
-                <div class="flex flex-wrap gap-1.5 justify-center">
-                    <button onclick="appendChar('2')" class="px-4 py-2 rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 font-bold hover:bg-indigo-600/30 text-sm">2</button>
-                    <button onclick="appendChar('3')" class="px-4 py-2 rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 font-bold hover:bg-indigo-600/30 text-sm">3</button>
-                    <button onclick="appendChar('4')" class="px-4 py-2 rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 font-bold hover:bg-indigo-600/30 text-sm">4</button>
-                    <button onclick="appendChar('5')" class="px-4 py-2 rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 font-bold hover:bg-indigo-600/30 text-sm">5</button>
-                    <button onclick="appendChar('6')" class="px-4 py-2 rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 font-bold hover:bg-indigo-600/30 text-sm">6</button>
-                    <button onclick="appendChar('7')" class="px-4 py-2 rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 font-bold hover:bg-indigo-600/30 text-sm">7</button>
-                    <button onclick="appendChar('8')" class="px-4 py-2 rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 font-bold hover:bg-indigo-600/30 text-sm">8</button>
-                    <span class="w-[1px] h-9 bg-white/10 mx-1"></span>
-                    <button onclick="appendChar('[')" class="px-3.5 py-2 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 text-sm font-semibold">[</button>
-                    <button onclick="appendChar(']')" class="px-3.5 py-2 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 text-sm font-semibold">]</button>
-                    <button onclick="appendChar('+')" class="px-3.5 py-2 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 text-sm font-semibold">+</button>
-                    <button onclick="appendChar('-')" class="px-3.5 py-2 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 text-sm font-semibold">-</button>
-                    <span class="w-[1px] h-9 bg-white/10 mx-1"></span>
-                    <button onclick="backspace()" class="px-5 py-2 rounded-lg bg-amber-500/10 border border-amber-500/20 hover:bg-amber-500/20 text-amber-400 text-sm font-bold transition duration-150">
-                        <i class="fa-solid fa-delete-left"></i> DEL
-                    </button>
-                </div>
-            </div>
-        </div>
-    </footer>
-
-    <!-- Three.js App Code Logic -->
+    <!-- Three.js Visualizer Engine -->
     <script>
-        // CPK Coloring Database for Atoms
-        const CPK_COLORS = {
-            'H': 0xFFFFFF,   // White
-            'He': 0xD9FFFF,  // Cyan
-            'B': 0xFFB5B5,   // Pink
-            'Be': 0xC2FF00,  // Greenish-Yellow
-            'C': 0x222222,   // Grey-black
-            'N': 0x3050F8,   // Blue
-            'O': 0xFF0D0D,   // Red
-            'F': 0x90E050,   // Green
-            'P': 0xFF8000,   // Orange
-            'S': 0xFFFF30,   // Yellow
-            'Cl': 0x1FF01F,  // Bright Green
-            'Br': 0xA62929,  // Dark Red
-            'I': 0x940094,   // Purple
-            'Xe': 0x429EB0,  // Blue-green
-            'DEFAULT': 0x9E9E9E
+        // SPDF Periodic Table Element Properties for Chemical Checks
+        const PERIODIC_TABLE = {
+            'H':  { name: 'Hydrogen', valence: 1, maxBonds: 1, block: 's', color: 0xFFFFFF },
+            'HE': { name: 'Helium', valence: 2, maxBonds: 0, block: 's', color: 0xD9FFFF },
+            'LI': { name: 'Lithium', valence: 1, maxBonds: 1, block: 's', color: 0xCC80FF },
+            'BE': { name: 'Beryllium', valence: 2, maxBonds: 2, block: 's', color: 0xC2FF00 },
+            'B':  { name: 'Boron', valence: 3, maxBonds: 3, block: 'p', color: 0xFFB5B5 },
+            'C':  { name: 'Carbon', valence: 4, maxBonds: 4, block: 'p', color: 0x222222 },
+            'N':  { name: 'Nitrogen', valence: 5, maxBonds: 4, block: 'p', color: 0x3050F8 },
+            'O':  { name: 'Oxygen', valence: 6, maxBonds: 2, block: 'p', color: 0xFF0D0D },
+            'F':  { name: 'Fluorine', valence: 7, maxBonds: 1, block: 'p', color: 0x90E050 },
+            'NE': { name: 'Neon', valence: 8, maxBonds: 0, block: 'p', color: 0xB3E3F5 },
+            'NA': { name: 'Sodium', valence: 1, maxBonds: 1, block: 's', color: 0xAB5CF2 },
+            'MG': { name: 'Magnesium', valence: 2, maxBonds: 2, block: 's', color: 0x8AFF00 },
+            'AL': { name: 'Aluminum', valence: 3, maxBonds: 3, block: 'p', color: 0xBFA6A6 },
+            'SI': { name: 'Silicon', valence: 4, maxBonds: 4, block: 'p', color: 0xF0C8A0 },
+            'P':  { name: 'Phosphorus', valence: 5, maxBonds: 5, block: 'p', color: 0xFF8000 },
+            'S':  { name: 'Sulfur', valence: 6, maxBonds: 6, block: 'p', color: 0xFFFF30 },
+            'CL': { name: 'Chlorine', valence: 7, maxBonds: 1, block: 'p', color: 0x1FF01F },
+            'AR': { name: 'Argon', valence: 8, maxBonds: 0, block: 'p', color: 0x80E1E1 },
+            'BR': { name: 'Bromine', valence: 7, maxBonds: 1, block: 'p', color: 0xA62929 },
+            'I':  { name: 'Iodine', valence: 7, maxBonds: 1, block: 'p', color: 0x940094 },
+            'XE': { name: 'Xenon', valence: 8, maxBonds: 6, block: 'p', color: 0x429EB0 }
         };
 
-        // Complete VSEPR Database matching chemical structures dynamically
-        const CHEMICAL_REGISTRY = {
+        // Well-known molecular database mapping
+        const MOLECULAR_REGISTRY = {
             'H2O': { name: 'Water', central: 'O', ligand: 'H', steric: 4, lonePairs: 2, geometry: 'Bent', electronGeom: 'Tetrahedral', hybridization: 'sp³' },
             'CO2': { name: 'Carbon Dioxide', central: 'C', ligand: 'O', steric: 2, lonePairs: 0, geometry: 'Linear', electronGeom: 'Linear', hybridization: 'sp' },
             'NH3': { name: 'Ammonia', central: 'N', ligand: 'H', steric: 4, lonePairs: 1, geometry: 'Trigonal Pyramidal', electronGeom: 'Tetrahedral', hybridization: 'sp³' },
@@ -263,23 +245,24 @@
             'IF5': { name: 'Iodine Pentafluoride', central: 'I', ligand: 'F', steric: 6, lonePairs: 1, geometry: 'Square Pyramidal', electronGeom: 'Octahedral', hybridization: 'sp³d²' }
         };
 
-        // Webpage UI Interactions (Keyboard)
-        function appendChar(char) {
-            const input = document.getElementById('formulaInput');
-            input.value += char;
-        }
-
         function clearFormula() {
             document.getElementById('formulaInput').value = '';
+            hideError();
         }
 
-        function backspace() {
-            const input = document.getElementById('formulaInput');
-            input.value = input.value.slice(0, -1);
+        function showError(message) {
+            const errorBox = document.getElementById('errorBox');
+            const errorMessage = document.getElementById('errorMessage');
+            errorMessage.innerText = message;
+            errorBox.classList.remove('hidden');
         }
 
-        // Global Scene Setup Elements
-        let scene, camera, renderer, controls, compoundGroup;
+        function hideError() {
+            document.getElementById('errorBox').classList.add('hidden');
+        }
+
+        // Global Scene Elements
+        let scene, camera, renderer, labelRenderer, controls, compoundGroup;
         let autoSpin = true;
 
         function init3D() {
@@ -293,11 +276,20 @@
             camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 100);
             camera.position.set(0, 5, 12);
 
+            // WebGL Renderer
             renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
             renderer.setSize(width, height);
             renderer.setPixelRatio(window.devicePixelRatio);
             renderer.shadowMap.enabled = true;
             container.appendChild(renderer.domElement);
+
+            // 2D HTML Label Overlay Renderer
+            labelRenderer = new THREE.CSS2DRenderer();
+            labelRenderer.setSize(width, height);
+            labelRenderer.domElement.style.position = 'absolute';
+            labelRenderer.domElement.style.top = '0px';
+            labelRenderer.domElement.style.pointerEvents = 'none';
+            container.appendChild(labelRenderer.domElement);
 
             controls = new THREE.OrbitControls(camera, renderer.domElement);
             controls.enableDamping = true;
@@ -305,8 +297,7 @@
             controls.maxDistance = 25;
             controls.minDistance = 4;
 
-            // Adding Lights
-            const ambientLight = new THREE.AmbientLight(0xffffff, 0.3);
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.35);
             scene.add(ambientLight);
 
             const dirLight1 = new THREE.DirectionalLight(0xffffff, 0.8);
@@ -316,10 +307,6 @@
             const dirLight2 = new THREE.DirectionalLight(0x6366f1, 0.5);
             dirLight2.position.set(-10, -10, -10);
             scene.add(dirLight2);
-
-            const pointLight = new THREE.PointLight(0xa855f7, 0.6, 30);
-            pointLight.position.set(0, 2, 4);
-            scene.add(pointLight);
 
             compoundGroup = new THREE.Group();
             scene.add(compoundGroup);
@@ -336,6 +323,7 @@
             }
             controls.update();
             renderer.render(scene, camera);
+            labelRenderer.render(scene, camera);
         }
 
         function onWindowResize() {
@@ -343,6 +331,7 @@
             camera.aspect = container.clientWidth / container.clientHeight;
             camera.updateProjectionMatrix();
             renderer.setSize(container.clientWidth, container.clientHeight);
+            labelRenderer.setSize(container.clientWidth, container.clientHeight);
         }
 
         function toggleRotation() {
@@ -360,36 +349,34 @@
             }
         }
 
-        // Geometric Math Generators based on VSEPR shapes
+        // VSEPR Angular Coordinate Generators
         function getCoordinates(steric) {
             const positions = [];
-            const r = 2.8; // Bond length scaling factor
+            const r = 2.8; 
             
-            if (steric === 2) { // Linear
+            if (steric === 2) {
                 positions.push(new THREE.Vector3(0, 0, r));
                 positions.push(new THREE.Vector3(0, 0, -r));
             } 
-            else if (steric === 3) { // Trigonal Planar
+            else if (steric === 3) {
                 positions.push(new THREE.Vector3(0, r, 0));
                 positions.push(new THREE.Vector3(r * Math.cos(Math.PI/6), -r * Math.sin(Math.PI/6), 0));
                 positions.push(new THREE.Vector3(-r * Math.cos(Math.PI/6), -r * Math.sin(Math.PI/6), 0));
             } 
-            else if (steric === 4) { // Tetrahedral parent
+            else if (steric === 4) {
                 positions.push(new THREE.Vector3(0, 0, r));
                 positions.push(new THREE.Vector3(r * (2*Math.sqrt(2)/3), 0, -r/3));
                 positions.push(new THREE.Vector3(-r * (Math.sqrt(2)/3), r * (Math.sqrt(6)/3), -r/3));
                 positions.push(new THREE.Vector3(-r * (Math.sqrt(2)/3), -r * (Math.sqrt(6)/3), -r/3));
             } 
-            else if (steric === 5) { // Trigonal Bipyramidal
-                // Axial
+            else if (steric === 5) {
                 positions.push(new THREE.Vector3(0, r, 0));
                 positions.push(new THREE.Vector3(0, -r, 0));
-                // Equatorial
                 positions.push(new THREE.Vector3(r, 0, 0));
                 positions.push(new THREE.Vector3(-r * 0.5, 0, r * Math.sqrt(3)/2));
                 positions.push(new THREE.Vector3(-r * 0.5, 0, -r * Math.sqrt(3)/2));
             } 
-            else if (steric === 6) { // Octahedral
+            else if (steric === 6) {
                 positions.push(new THREE.Vector3(0, r, 0));
                 positions.push(new THREE.Vector3(0, -r, 0));
                 positions.push(new THREE.Vector3(r, 0, 0));
@@ -400,49 +387,100 @@
             return positions;
         }
 
-        // Fallback procedural engine parser to dynamically handle non-registered entries cleanly
-        function parseFormulaProcedurally(formula) {
-            const pattern = /([A-Z][a-z]?|\[|\]|\+|\-)(\d*)/g;
+        // Chemical Validation & Parsing Engine
+        function analyzeAndValidateFormula(formula) {
+            const normalized = formula.toUpperCase().trim();
+            
+            // Check Database First
+            if (MOLECULAR_REGISTRY[normalized]) {
+                return MOLECULAR_REGISTRY[normalized];
+            }
+
+            // Parse Chemistry Formula via Regex Elements
+            const pattern = /([A-Z][a-z]?)(\d*)/g;
             const elements = [];
             let match;
-            while ((match = pattern.exec(formula)) !== null) {
+            
+            while ((match = pattern.exec(normalized)) !== null) {
                 const element = match[1];
                 const count = match[2] ? parseInt(match[2]) : 1;
-                if (['[', ']', '+', '-'].includes(element)) continue;
                 elements.push({ element, count });
             }
 
-            if (elements.length === 0) return null;
-            
-            // Assume first element (or second if first is H) is central
+            if (elements.length === 0) {
+                return { error: "Please enter a valid chemical formula format (e.g., H2O)." };
+            }
+
+            // Verify existence of symbols inside SPDF periodic table
+            for (let el of elements) {
+                if (!PERIODIC_TABLE[el.element]) {
+                    return { error: `Element symbol "${el.element}" is either invalid or currently unsupported.` };
+                }
+            }
+
+            // Separate Central & Outer atoms
             let centralIndex = 0;
             if (elements[0].element === 'H' && elements.length > 1) {
-                centralIndex = 1;
+                centralIndex = 1; 
             }
+
+            const centralSymbol = elements[centralIndex].element;
+            const centralAtom = PERIODIC_TABLE[centralSymbol];
             
-            const central = elements[centralIndex].element;
+            // Collect ligands
             const ligands = elements.filter((el, idx) => idx !== centralIndex);
-            
             let totalLigandCount = 0;
-            let ligandElement = 'H';
+            let ligandSymbol = '';
+            
             ligands.forEach(l => {
                 totalLigandCount += l.count;
-                ligandElement = l.element; 
+                ligandSymbol = l.element;
             });
 
-            // Make a smart guess on Steric number
+            if (totalLigandCount === 0) {
+                return { error: `Single element configurations (${centralSymbol}) cannot form compound bonds.` };
+            }
+
+            const ligandAtom = PERIODIC_TABLE[ligandSymbol];
+
+            // --- Chemistry Rules Engine (Octet, Blocks, Valence Checks) ---
+            if (centralAtom.maxBonds === 0) {
+                return { error: `Inert Noble Gas ${centralAtom.name} cannot form center bounds in standard conditions.` };
+            }
+
+            // Maximum coordinate bonds validation (VSEPR limits 2-6)
+            if (totalLigandCount > 6) {
+                return { error: "Steric number limits exceeded. Visualizer renders up to 6 surrounding atoms." };
+            }
+
+            // Check if ligand valence requirements exceed the central atom's capability
+            const neededElectrons = totalLigandCount * (ligandSymbol === 'H' ? 1 : 1); 
+            if (neededElectrons > centralAtom.valence) {
+                // Hypervalency checks for elements in Period 3 or higher (sp³d / sp³d² block)
+                const periodicPeriod = ['H', 'HE'].includes(centralSymbol) ? 1 : (['LI', 'BE', 'B', 'C', 'N', 'O', 'F', 'NE'].includes(centralSymbol) ? 2 : 3);
+                if (periodicPeriod < 3 && totalLigandCount > centralAtom.maxBonds) {
+                    return { error: `${centralAtom.name} cannot exceed octet configuration constraints (Period 2 Element).` };
+                }
+            }
+
+            // Make realistic Steric calculation
             const steric = Math.min(Math.max(totalLigandCount, 2), 6);
-            const lonePairs = Math.max(0, steric - totalLigandCount);
+            const lonePairs = Math.max(0, Math.floor((centralAtom.valence - totalLigandCount) / 2));
+
+            // Setup proper classification strings
+            const geometry = getGeometryName(steric, lonePairs);
+            const electronGeom = getGeometryName(steric, 0);
+            const hybridization = getHybridization(steric);
 
             return {
-                name: `Procedural: ${formula}`,
-                central: central,
-                ligand: ligandElement,
+                name: `Parsed: ${formula}`,
+                central: centralSymbol,
+                ligand: ligandSymbol,
                 steric: steric,
                 lonePairs: lonePairs,
-                geometry: getGeometryName(steric, lonePairs),
-                electronGeom: getGeometryName(steric, 0),
-                hybridization: getHybridization(steric)
+                geometry: geometry,
+                electronGeom: electronGeom,
+                hybridization: hybridization
             };
         }
 
@@ -473,6 +511,16 @@
             return hybs[steric] || 'Unknown';
         }
 
+        // Add 2D HTML Text Overlays above 3D meshes
+        function createAtomLabel(text, position) {
+            const div = document.createElement('div');
+            div.className = 'atom-label';
+            div.textContent = text;
+            const label = new THREE.CSS2DObject(div);
+            label.position.copy(position);
+            return label;
+        }
+
         // Draw visual 3D structures
         function buildMolecule(config) {
             // Clear existing scene geometry
@@ -482,8 +530,8 @@
             }
 
             const { central, ligand, steric, lonePairs } = config;
-            const centralColor = CPK_COLORS[central] || CPK_COLORS['DEFAULT'];
-            const ligandColor = CPK_COLORS[ligand] || CPK_COLORS['DEFAULT'];
+            const centralColor = PERIODIC_TABLE[central]?.color || 0x9E9E9E;
+            const ligandColor = PERIODIC_TABLE[ligand]?.color || 0x9E9E9E;
 
             // 1. Central Atom
             const centralGeometry = new THREE.SphereGeometry(1.0, 32, 32);
@@ -494,6 +542,10 @@
             });
             const centralAtomMesh = new THREE.Mesh(centralGeometry, centralMaterial);
             compoundGroup.add(centralAtomMesh);
+
+            // Append Central Symbol Label
+            const centralLabel = createAtomLabel(central, new THREE.Vector3(0, 1.4, 0));
+            centralAtomMesh.add(centralLabel);
 
             // Fetch coordinates for steric paths
             const coords = getCoordinates(steric);
@@ -514,6 +566,10 @@
                 outerMesh.position.copy(targetPos);
                 compoundGroup.add(outerMesh);
 
+                // Append Outer Symbol Label
+                const outerLabel = createAtomLabel(ligand, new THREE.Vector3(0, 0.9, 0));
+                outerMesh.add(outerLabel);
+
                 // Cylinder geometry representing direct chemical bond
                 const bondDist = targetPos.length();
                 const bondGeom = new THREE.CylinderGeometry(0.15, 0.15, bondDist, 16);
@@ -533,7 +589,6 @@
                 const targetPos = coords[i];
                 const direction = new THREE.Vector3().copy(targetPos).normalize();
 
-                // Generate a custom shape for the teardrop orbital lobe
                 const lobeGroup = new THREE.Group();
                 const lobeGeom = new THREE.SphereGeometry(0.65, 32, 32);
                 
@@ -552,10 +607,12 @@
                 });
                 
                 const lobeMesh = new THREE.Mesh(lobeGeom, lobeMat);
-                
-                // Align orbital lobe properly
                 lobeMesh.position.set(0, 0.8, 0); 
                 lobeGroup.add(lobeMesh);
+
+                // Add lone pair electron labels
+                const loneLabel = createAtomLabel("Lone Pair", new THREE.Vector3(0, 1.8, 0));
+                lobeMesh.add(loneLabel);
 
                 // Add 2 tiny distinct spheres inside simulating lone pair electrons
                 const electronGeom = new THREE.SphereGeometry(0.12, 16, 16);
@@ -591,21 +648,28 @@
             const rawFormula = document.getElementById('formulaInput').value.trim();
             if (!rawFormula) return;
 
-            let compoundConfig = CHEMICAL_REGISTRY[rawFormula];
-            if (!compoundConfig) {
-                compoundConfig = parseFormulaProcedurally(rawFormula);
+            hideError();
+            const result = analyzeAndValidateFormula(rawFormula);
+
+            if (result.error) {
+                showError(result.error);
+                return;
             }
 
-            if (compoundConfig) {
-                buildMolecule(compoundConfig);
-                updateDashboard(compoundConfig);
-            }
+            buildMolecule(result);
+            updateDashboard(result);
         }
 
-        // Bootstrapping the app on load
+        // Monitor Standard Keyboard Enter Key Action
+        document.getElementById('formulaInput').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                visualizeInput();
+            }
+        });
+
+        // Initialize 3D on DOM ready
         window.onload = () => {
             init3D();
-            // Default visual load
             document.getElementById('formulaInput').value = 'H2O';
             visualizeInput();
         };
