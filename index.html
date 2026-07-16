@@ -78,12 +78,12 @@
     <!-- Header Navigation -->
     <header class="glassmorphism sticky top-0 z-50 px-6 py-3.5 flex items-center justify-between border-b border-white/5">
         <div class="flex items-center space-x-3">
-            <!-- Custom logo.ico Webpage Brand Logo replacement -->
+            <!-- Custom logo.ico Webpage Brand Logo -->
             <img src="logo.ico" alt="ECLIPSE7 Logo" class="w-10 h-10 rounded-xl object-contain shadow-lg shadow-indigo-500/10">
             <div>
                 <div class="flex items-center gap-1.5">
                     <h1 class="text-lg font-bold tracking-tight bg-gradient-to-r from-white via-gray-200 to-gray-400 bg-clip-text text-transparent">ECLIPSE7</h1>
-                    <span class="text-xs text-gray-400 font-medium">by Prasad Reddy</span>
+                    <span class="text-xs text-gray-400 font-medium">by Saiprasad Barure</span>
                     <i class="fa-solid fa-circle-check text-blue-500 text-xs shadow-sm" title="Verified Creator"></i>
                 </div>
                 <p class="text-[11px] text-indigo-400 font-medium">3D Molecular Geometry Visualizer</p>
@@ -105,10 +105,10 @@
             <!-- Compound Input Panel -->
             <div class="glassmorphism rounded-2xl p-5 flex flex-col gap-4">
                 <h2 class="text-xs font-semibold text-gray-400 uppercase tracking-wider flex items-center gap-2">
-                    <i class="fa-solid fa-keyboard text-indigo-400"></i> Type Compound Formula
+                    <i class="fa-solid fa-keyboard text-indigo-400"></i> Type Compound / Ion Formula
                 </h2>
                 <div class="relative">
-                    <input type="text" id="formulaInput" placeholder="Enter AlCl3, SF6, NH3, H2O..." 
+                    <input type="text" id="formulaInput" placeholder="Enter PO4 3-, NO2 -, I3-, O3, NaCl..." 
                         class="w-full text-2xl font-bold tracking-wider py-3.5 px-5 rounded-xl glass-input text-white text-center">
                 </div>
                 
@@ -138,7 +138,7 @@
                     <!-- Structural Stats Dynamic Grid -->
                     <div class="grid grid-cols-2 gap-3 mb-6">
                         <div class="bg-white/5 border border-white/5 p-3 rounded-xl">
-                            <span class="text-[10px] text-gray-400 block mb-1">Compound Name</span>
+                            <span class="text-[10px] text-gray-400 block mb-1">Compound/Ion Name</span>
                             <span id="propName" class="font-semibold text-xs text-indigo-300">-</span>
                         </div>
                         <div class="bg-white/5 border border-white/5 p-3 rounded-xl">
@@ -366,7 +366,11 @@
             const positions = [];
             const r = 2.8; 
             
-            if (steric === 2) {
+            if (steric === 1) {
+                // Diatomic molecules (like NaCl, HCl, HF)
+                positions.push(new THREE.Vector3(r, 0, 0));
+            }
+            else if (steric === 2) {
                 positions.push(new THREE.Vector3(0, 0, r));
                 positions.push(new THREE.Vector3(0, 0, -r));
             } 
@@ -399,78 +403,97 @@
             return positions;
         }
 
-        // Fully Dynamic Chemistry Formula Analytical Engine
+        // Upgraded Chemistry Parser supporting Ions, Charges, and Homonuclear Species
         function parseFormulaChemically(formula) {
+            // 1. Extract and normalize charges (e.g., PO4 3- or NO2 - or I3-)
+            let charge = 0;
+            let workingFormula = formula.replace(/\s+/g, ''); // Remove spaces
+            
+            const chargeMatch = workingFormula.match(/([0-9]*)([\+\-])+$/);
+            if (chargeMatch) {
+                const sign = chargeMatch[2];
+                const amount = chargeMatch[1] ? parseInt(chargeMatch[1]) : 1;
+                charge = (sign === '+') ? amount : -amount;
+                workingFormula = workingFormula.substring(0, chargeMatch.index); // Strip charge
+            }
+
+            // 2. Parse Elements and counts
             const pattern = /([A-Z][a-z]?)(\d*)/g;
-            const elements = [];
+            const parsedElements = [];
             let match;
             
-            while ((match = pattern.exec(formula)) !== null) {
+            while ((match = pattern.exec(workingFormula)) !== null) {
                 const element = match[1]; 
                 const count = match[2] ? parseInt(match[2]) : 1;
-                elements.push({ element, count });
+                parsedElements.push({ element, count });
             }
 
-            if (elements.length === 0) {
-                return { error: "Please enter a valid chemical formula configuration (e.g., AlCl3)." };
+            if (parsedElements.length === 0) {
+                return { error: "Please enter a valid chemical formula (e.g., PO4 3-, I3-, NaCl)." };
             }
 
-            // Verify element lookup on the periodic table
-            for (let el of elements) {
+            // Validate periodic table presence
+            for (let el of parsedElements) {
                 if (!PERIODIC_TABLE[el.element.toUpperCase()]) {
-                    return { error: `Element symbol "${el.element}" is not a valid atom symbol.` };
+                    return { error: `Element symbol "${el.element}" is not valid.` };
                 }
             }
 
-            // Central atom calculation
-            let centralIdx = 0;
-            if (elements[0].element.toUpperCase() === 'H' && elements.length > 1) {
-                centralIdx = 1; 
+            // 3. Determine Central vs. Ligand Atoms
+            let centralSymbol = '';
+            let ligandsList = [];
+            
+            if (parsedElements.length === 1) {
+                // Homonuclear molecule (e.g. O3 or I3 or F2)
+                const singleSymbol = parsedElements[0].element;
+                if (parsedElements[0].count < 2) {
+                    return { error: "Formulas require at least two atoms to visualize bonds." };
+                }
+                centralSymbol = singleSymbol;
+                ligandsList.push({ element: singleSymbol, count: parsedElements[0].count - 1 });
+            } else {
+                // Heteronuclear (e.g., PO4, NaCl)
+                // Select first element (or second if first is Hydrogen and there are options)
+                let centralIdx = 0;
+                if (parsedElements[0].element.toUpperCase() === 'H' && parsedElements.length > 1) {
+                    centralIdx = 1; 
+                }
+                centralSymbol = parsedElements[centralIdx].element;
+                ligandsList = parsedElements.filter((_, idx) => idx !== centralIdx);
             }
 
-            const centralSymbol = elements[centralIdx].element;
             const centralAtom = PERIODIC_TABLE[centralSymbol.toUpperCase()];
-
-            const ligands = elements.filter((_, idx) => idx !== centralIdx);
             let totalLigands = 0;
             let ligandSymbol = '';
 
-            ligands.forEach(l => {
+            ligandsList.forEach(l => {
                 totalLigands += l.count;
                 ligandSymbol = l.element;
             });
 
             if (totalLigands === 0) {
-                return { error: "Formulas require at least two atoms to build bonds." };
+                return { error: "At least one surrounding ligand is needed to build coordinates." };
             }
 
             const ligandAtom = PERIODIC_TABLE[ligandSymbol.toUpperCase()];
 
-            // --- Chemical Feasibility Validation Check ---
-            if (centralAtom.maxBonds === 0) {
-                return { error: `Inert Noble Gas "${centralAtom.name}" cannot form center bonds.` };
+            // 4. Valence & VSEPR Calculations with Ion Support
+            // Add/Subtract charge electrons from central valence pool (Anion: add; Cation: subtract)
+            let centralValence = centralAtom.valence - charge;
+            
+            // Limit bounds checks
+            if (centralValence < 0) {
+                return { error: `Positive charge is too high. Element "${centralAtom.name}" does not possess enough electrons.` };
             }
 
-            if (totalLigands > 6) {
-                return { error: "Steric capability limits reached. Visualizer renders up to 6 coordinate domains." };
-            }
+            // Calculate Steric Number
+            let remainingValenceElectrons = centralValence - totalLigands;
+            let lonePairs = Math.max(0, Math.floor(remainingValenceElectrons / 2));
+            let steric = totalLigands + lonePairs;
 
-            // Calculate valence electrons dynamically to compute Lone Pairs correctly
-            let centralValence = centralAtom.valence;
-            let ligandBonds = totalLigands; 
-
-            // Subtract bonding electrons from valence shell of central atom
-            let remainingValenceElectrons = centralValence - ligandBonds;
-
-            if (remainingValenceElectrons < 0) {
-                return { error: `Structure chemically impossible. "${centralAtom.name}" only has ${centralValence} valence electrons, which is not enough to bind ${totalLigands} "${ligandAtom.name}" atom(s).` };
-            }
-
-            const lonePairs = Math.max(0, Math.floor(remainingValenceElectrons / 2));
-            const steric = totalLigands + lonePairs;
-
+            // Enforce hard constraints on render engine
             if (steric > 6) {
-                return { error: `The steric number (${steric}) of this compound exceeds visual geometry limits.` };
+                return { error: `Steric number (${steric}) of this configuration exceeds visualizer rendering limits (Max: 6).` };
             }
 
             return {
@@ -486,6 +509,7 @@
         }
 
         function getGeometryName(steric, lonePairs) {
+            if (steric === 1) return 'Linear (Diatomic)';
             if (steric === 2) return 'Linear';
             if (steric === 3) return lonePairs === 1 ? 'Bent' : 'Trigonal Planar';
             if (steric === 4) {
@@ -508,7 +532,7 @@
         }
 
         function getHybridization(steric) {
-            const hybs = { 2: 'sp', 3: 'sp²', 4: 'sp³', 5: 'sp³d', 6: 'sp³d²' };
+            const hybs = { 1: 'No Hybridization', 2: 'sp', 3: 'sp²', 4: 'sp³', 5: 'sp³d', 6: 'sp³d²' };
             return hybs[steric] || 'Unknown';
         }
 
@@ -522,12 +546,10 @@
         }
 
         function clearSceneAndLabels() {
-            // Remove 3D geometries
             while (compoundGroup.children.length > 0) {
                 const obj = compoundGroup.children[0];
                 compoundGroup.remove(obj);
             }
-            // Clear floating CSS2D HTML elements
             const labelContainer = labelRenderer.domElement;
             while (labelContainer.firstChild) {
                 labelContainer.removeChild(labelContainer.firstChild);
@@ -551,7 +573,6 @@
             const centralAtomMesh = new THREE.Mesh(centralGeometry, centralMaterial);
             compoundGroup.add(centralAtomMesh);
 
-            // Correct central label assignment
             const centralLabel = createAtomLabel(central, new THREE.Vector3(0, 1.3, 0));
             centralAtomMesh.add(centralLabel);
 
@@ -572,7 +593,6 @@
                 outerMesh.position.copy(targetPos);
                 compoundGroup.add(outerMesh);
 
-                // Correct ligand label assignments
                 const outerLabel = createAtomLabel(ligand, new THREE.Vector3(0, 0.9, 0));
                 outerMesh.add(outerLabel);
 
