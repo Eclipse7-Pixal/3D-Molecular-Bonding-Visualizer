@@ -203,70 +203,60 @@
 
     <!-- Three.js Visualizer Engine -->
     <script>
-        // Comprehensive Periodic Table database covering S, P, and D Blocks
+        // Complete Periodic Table Database (s, p, and d blocks)
         const PERIODIC_TABLE = {
-            'H':  { name: 'Hydrogen', valence: 1, maxBonds: 1, block: 's', color: 0xFFFFFF },
-            'HE': { name: 'Helium', valence: 2, maxBonds: 0, block: 's', color: 0xD9FFFF },
-            'LI': { name: 'Lithium', valence: 1, maxBonds: 1, block: 's', color: 0xCC80FF },
-            'BE': { name: 'Beryllium', valence: 2, maxBonds: 2, block: 's', color: 0xC2FF00 },
-            'B':  { name: 'Boron', valence: 3, maxBonds: 3, block: 'p', color: 0xFFB5B5 },
-            'C':  { name: 'Carbon', valence: 4, maxBonds: 4, block: 'p', color: 0x222222 },
-            'N':  { name: 'Nitrogen', valence: 5, maxBonds: 4, block: 'p', color: 0x3050F8 },
-            'O':  { name: 'Oxygen', valence: 6, maxBonds: 2, block: 'p', color: 0xFF0D0D },
-            'F':  { name: 'Fluorine', valence: 7, maxBonds: 1, block: 'p', color: 0x90E050 },
-            'NE': { name: 'Neon', valence: 8, maxBonds: 0, block: 'p', color: 0xB3E3F5 },
-            'NA': { name: 'Sodium', valence: 1, maxBonds: 1, block: 's', color: 0xAB5CF2 },
-            'MG': { name: 'Magnesium', valence: 2, maxBonds: 2, block: 's', color: 0x8AFF00 },
-            'AL': { name: 'Aluminum', valence: 3, maxBonds: 3, block: 'p', color: 0xBFA6A6 },
-            'SI': { name: 'Silicon', valence: 4, maxBonds: 4, block: 'p', color: 0xF0C8A0 },
-            'P':  { name: 'Phosphorus', valence: 5, maxBonds: 5, block: 'p', color: 0xFF8000 },
-            'S':  { name: 'Sulfur', valence: 6, maxBonds: 6, block: 'p', color: 0xFFFF30 },
-            'CL': { name: 'Chlorine', valence: 7, maxBonds: 1, block: 'p', color: 0x1FF01F },
-            'AR': { name: 'Argon', valence: 8, maxBonds: 0, block: 'p', color: 0x80E1E1 },
-            'K':  { name: 'Potassium', valence: 1, maxBonds: 1, block: 's', color: 0x8F40D4 },
-            'CA': { name: 'Calcium', valence: 2, maxBonds: 2, block: 's', color: 0x3DFF00 },
-            'SC': { name: 'Scandium', valence: 3, maxBonds: 3, block: 'd', color: 0xE6E6E6 },
-            'TI': { name: 'Titanium', valence: 4, maxBonds: 4, block: 'd', color: 0x9EC2C9 },
-            'V':  { name: 'Vanadium', valence: 5, maxBonds: 5, block: 'd', color: 0xA6A6AB },
-            'CR': { name: 'Chromium', valence: 6, maxBonds: 6, block: 'd', color: 0x8A99C7 },
-            'MN': { name: 'Manganese', valence: 7, maxBonds: 7, block: 'd', color: 0x9C7AC7 },
-            'FE': { name: 'Iron', valence: 8, maxBonds: 6, block: 'd', color: 0xE06633 },
-            'CO': { name: 'Cobalt', valence: 9, maxBonds: 6, block: 'd', color: 0xF090A0 },
-            'NI': { name: 'Nickel', valence: 10, maxBonds: 6, block: 'd', color: 0x50D050 },
-            'CU': { name: 'Copper', valence: 11, maxBonds: 4, block: 'd', color: 0xC88033 },
-            'ZN': { name: 'Zinc', valence: 12, maxBonds: 2, block: 'd', color: 0x7D80B0 },
-            'GA': { name: 'Gallium', valence: 3, maxBonds: 3, block: 'p', color: 0xC38F8F },
-            'GE': { name: 'Germanium', valence: 4, maxBonds: 4, block: 'p', color: 0x668F8F },
-            'AS': { name: 'Arsenic', valence: 5, maxBonds: 5, block: 'p', color: 0xBD80E3 },
-            'SE': { name: 'Selenium', valence: 6, maxBonds: 6, block: 'p', color: 0xFFA100 },
-            'BR': { name: 'Bromine', valence: 7, maxBonds: 1, block: 'p', color: 0xA62929 },
-            'KR': { name: 'Krypton', valence: 8, maxBonds: 0, block: 'p', color: 0x5CB8D1 },
-            'Y':  { name: 'Yttrium', valence: 3, maxBonds: 3, block: 'd', color: 0x94FFFF },
-            'ZR': { { name: 'Zirconium', valence: 4, maxBonds: 4, block: 'd', color: 0x94E3E3 } },
-            'NB': { name: 'Niobium', valence: 5, maxBonds: 5, block: 'd', color: 0x73C2C9 },
-            'MO': { name: 'Molybdenum', valence: 6, maxBonds: 6, block: 'd', color: 0x54B5B5 },
-            'AG': { name: 'Silver', valence: 11, maxBonds: 2, block: 'd', color: 0xC0C0C0 },
-            'I':  { name: 'Iodine', valence: 7, maxBonds: 1, block: 'p', color: 0x940094 },
-            'XE': { name: 'Xenon', valence: 8, maxBonds: 6, block: 'p', color: 0x429EB0 }
-        };
-
-        // Standard geometries pre-mapped
-        const MOLECULAR_REGISTRY = {
-            'H2O': { name: 'Water', central: 'O', ligand: 'H', steric: 4, lonePairs: 2, geometry: 'Bent', electronGeom: 'Tetrahedral', hybridization: 'sp³' },
-            'CO2': { name: 'Carbon Dioxide', central: 'C', ligand: 'O', steric: 2, lonePairs: 0, geometry: 'Linear', electronGeom: 'Linear', hybridization: 'sp' },
-            'NH3': { name: 'Ammonia', central: 'N', ligand: 'H', steric: 4, lonePairs: 1, geometry: 'Trigonal Pyramidal', electronGeom: 'Tetrahedral', hybridization: 'sp³' },
-            'CH4': { name: 'Methane', central: 'C', ligand: 'H', steric: 4, lonePairs: 0, geometry: 'Tetrahedral', electronGeom: 'Tetrahedral', hybridization: 'sp³' },
-            'SF6': { name: 'Sulfur Hexafluoride', central: 'S', ligand: 'F', steric: 6, lonePairs: 0, geometry: 'Octahedral', electronGeom: 'Octahedral', hybridization: 'sp³d²' },
-            'PCL5': { name: 'Phosphorus Pentachloride', central: 'P', ligand: 'Cl', steric: 5, lonePairs: 0, geometry: 'Trigonal Bipyramidal', electronGeom: 'Trigonal Bipyramidal', hybridization: 'sp³d' },
-            'ALCL3': { name: 'Aluminum Chloride', central: 'Al', ligand: 'Cl', steric: 3, lonePairs: 0, geometry: 'Trigonal Planar', electronGeom: 'Trigonal Planar', hybridization: 'sp²' },
-            'BF3': { name: 'Boron Trifluoride', central: 'B', ligand: 'F', steric: 3, lonePairs: 0, geometry: 'Trigonal Planar', electronGeom: 'Trigonal Planar', hybridization: 'sp²' },
-            'BECL2': { name: 'Beryllium Chloride', central: 'Be', ligand: 'Cl', steric: 2, lonePairs: 0, geometry: 'Linear', electronGeom: 'Linear', hybridization: 'sp' },
-            'XEF4': { name: 'Xenon Tetrafluoride', central: 'Xe', ligand: 'F', steric: 6, lonePairs: 2, geometry: 'Square Planar', electronGeom: 'Octahedral', hybridization: 'sp³d²' },
-            'SO2': { name: 'Sulfur Dioxide', central: 'S', ligand: 'O', steric: 3, lonePairs: 1, geometry: 'Bent', electronGeom: 'Trigonal Planar', hybridization: 'sp²' },
-            'SF4': { name: 'Sulfur Tetrafluoride', central: 'S', ligand: 'F', steric: 5, lonePairs: 1, geometry: 'Seesaw', electronGeom: 'Trigonal Bipyramidal', hybridization: 'sp³d' },
-            'CLF3': { name: 'Chlorine Trifluoride', central: 'Cl', ligand: 'F', steric: 5, lonePairs: 2, geometry: 'T-shaped', electronGeom: 'Trigonal Bipyramidal', hybridization: 'sp³d' },
-            'XEF2': { name: 'Xenon Difluoride', central: 'Xe', ligand: 'F', steric: 5, lonePairs: 3, geometry: 'Linear', electronGeom: 'Trigonal Bipyramidal', hybridization: 'sp³d' },
-            'IF5': { name: 'Iodine Pentafluoride', central: 'I', ligand: 'F', steric: 6, lonePairs: 1, geometry: 'Square Pyramidal', electronGeom: 'Octahedral', hybridization: 'sp³d²' }
+            'H':  { name: 'Hydrogen', valence: 1, maxBonds: 1, color: 0xFFFFFF },
+            'HE': { name: 'Helium', valence: 2, maxBonds: 0, color: 0xD9FFFF },
+            'LI': { name: 'Lithium', valence: 1, maxBonds: 1, color: 0xCC80FF },
+            'BE': { name: 'Beryllium', valence: 2, maxBonds: 2, color: 0xC2FF00 },
+            'B':  { name: 'Boron', valence: 3, maxBonds: 3, color: 0xFFB5B5 },
+            'C':  { name: 'Carbon', valence: 4, maxBonds: 4, color: 0x555555 },
+            'N':  { name: 'Nitrogen', valence: 5, maxBonds: 4, color: 0x3050F8 },
+            'O':  { name: 'Oxygen', valence: 6, maxBonds: 2, color: 0xFF0D0D },
+            'F':  { name: 'Fluorine', valence: 7, maxBonds: 1, color: 0x90E050 },
+            'NE': { name: 'Neon', valence: 8, maxBonds: 0, color: 0xB3E3F5 },
+            'NA': { name: 'Sodium', valence: 1, maxBonds: 1, color: 0xAB5CF2 },
+            'MG': { name: 'Magnesium', valence: 2, maxBonds: 2, color: 0x8AFF00 },
+            'AL': { name: 'Aluminum', valence: 3, maxBonds: 3, color: 0xBFA6A6 },
+            'SI': { name: 'Silicon', valence: 4, maxBonds: 4, color: 0xF0C8A0 },
+            'P':  { name: 'Phosphorus', valence: 5, maxBonds: 5, color: 0xFF8000 },
+            'S':  { name: 'Sulfur', valence: 6, maxBonds: 6, color: 0xFFFF30 },
+            'CL': { name: 'Chlorine', valence: 7, maxBonds: 1, color: 0x1FF01F },
+            'AR': { name: 'Argon', valence: 8, maxBonds: 0, color: 0x80E1E1 },
+            'K':  { name: 'Potassium', valence: 1, maxBonds: 1, color: 0x8F40D4 },
+            'CA': { name: 'Calcium', valence: 2, maxBonds: 2, color: 0x3DFF00 },
+            'SC': { name: 'Scandium', valence: 3, maxBonds: 3, color: 0xE6E6E6 },
+            'TI': { name: 'Titanium', valence: 4, maxBonds: 4, color: 0x9EC2C9 },
+            'V':  { name: 'Vanadium', valence: 5, maxBonds: 5, color: 0xA6A6AB },
+            'CR': { name: 'Chromium', valence: 6, maxBonds: 6, color: 0x8A99C7 },
+            'MN': { name: 'Manganese', valence: 7, maxBonds: 7, color: 0x9C7AC7 },
+            'FE': { name: 'Iron', valence: 8, maxBonds: 6, color: 0xE06633 },
+            'CO': { name: 'Cobalt', valence: 9, maxBonds: 6, color: 0xF090A0 },
+            'NI': { name: 'Nickel', valence: 10, maxBonds: 6, color: 0x50D050 },
+            'CU': { name: 'Copper', valence: 11, maxBonds: 4, color: 0xC88033 },
+            'ZN': { name: 'Zinc', valence: 12, maxBonds: 2, color: 0x7D80B0 },
+            'GA': { name: 'Gallium', valence: 3, maxBonds: 3, color: 0xC38F8F },
+            'GE': { name: 'Germanium', valence: 4, maxBonds: 4, color: 0x668F8F },
+            'AS': { name: 'Arsenic', valence: 5, maxBonds: 5, color: 0xBD80E3 },
+            'SE': { name: 'Selenium', valence: 6, maxBonds: 6, color: 0xFFA100 },
+            'BR': { name: 'Bromine', valence: 7, maxBonds: 1, color: 0xA62929 },
+            'KR': { name: 'Krypton', valence: 8, maxBonds: 0, color: 0x5CB8D1 },
+            'Y':  { name: 'Yttrium', valence: 3, maxBonds: 3, color: 0x94FFFF },
+            'ZR': { name: 'Zirconium', valence: 4, maxBonds: 4, color: 0x94E3E3 },
+            'NB': { name: 'Niobium', valence: 5, maxBonds: 5, color: 0x73C2C9 },
+            'MO': { name: 'Molybdenum', valence: 6, maxBonds: 6, color: 0x54B5B5 },
+            'TC': { name: 'Technetium', valence: 7, maxBonds: 6, color: 0x3B9E9E },
+            'RU': { name: 'Ruthenium', valence: 8, maxBonds: 6, color: 0x248F8F },
+            'RH': { name: 'Rhodium', valence: 9, maxBonds: 6, color: 0x0A7D7D },
+            'PD': { name: 'Palladium', valence: 10, maxBonds: 4, color: 0x006969 },
+            'AG': { name: 'Silver', valence: 11, maxBonds: 2, color: 0xC0C0C0 },
+            'CD': { name: 'Cadmium', valence: 12, maxBonds: 2, color: 0xFFD98F },
+            'IN': { name: 'Indium', valence: 3, maxBonds: 3, color: 0xA67573 },
+            'SN': { name: 'Tin', valence: 4, maxBonds: 4, color: 0x667F80 },
+            'SB': { name: 'Antimony', valence: 5, maxBonds: 5, color: 0x9E63B5 },
+            'TE': { name: 'Tellurium', valence: 6, maxBonds: 6, color: 0xD47A00 },
+            'I':  { name: 'Iodine', valence: 7, maxBonds: 1, color: 0x940094 },
+            'XE': { name: 'Xenon', valence: 8, maxBonds: 6, color: 0x429EB0 }
         };
 
         function clearFormula() {
@@ -408,20 +398,15 @@
             return positions;
         }
 
-        // Casing-Safe Elements Chemical Parsing
+        // Fully Dynamic Chemistry Formula Analytical Engine
         function parseFormulaChemically(formula) {
-            const uppercaseFormula = formula.toUpperCase().trim();
-            if (MOLECULAR_REGISTRY[uppercaseFormula]) {
-                return MOLECULAR_REGISTRY[uppercaseFormula];
-            }
-
-            // Standard regex to parse element symbols preserving proper case matching (e.g. Al, Cl, H)
+            // Natural preservation regex matching symbols properly (e.g. Al, Cl, H)
             const pattern = /([A-Z][a-z]?)(\d*)/g;
             const elements = [];
             let match;
             
             while ((match = pattern.exec(formula)) !== null) {
-                const element = match[1]; // Case-preserved element token
+                const element = match[1]; 
                 const count = match[2] ? parseInt(match[2]) : 1;
                 elements.push({ element, count });
             }
@@ -430,14 +415,14 @@
                 return { error: "Please enter a valid chemical formula configuration (e.g., AlCl3)." };
             }
 
-            // Validate that the elements exist on our detailed SPDF table
+            // Verify element lookup on the periodic table
             for (let el of elements) {
                 if (!PERIODIC_TABLE[el.element.toUpperCase()]) {
                     return { error: `Element symbol "${el.element}" is not a valid atom symbol.` };
                 }
             }
 
-            // Determine central vs ligand
+            // Central atom is determined dynamically: first element, unless it's Hydrogen and other elements exist
             let centralIdx = 0;
             if (elements[0].element.toUpperCase() === 'H' && elements.length > 1) {
                 centralIdx = 1; 
@@ -461,20 +446,35 @@
 
             const ligandAtom = PERIODIC_TABLE[ligandSymbol.toUpperCase()];
 
+            // --- Chemical Feasibility Validation Check ---
             if (centralAtom.maxBonds === 0) {
-                return { error: `${centralAtom.name} is an inert noble gas and cannot form central bonds.` };
+                return { error: `Inert Noble Gas "${centralAtom.name}" cannot form center bonds.` };
             }
 
             if (totalLigands > 6) {
-                return { error: "Steric capability limits reached. Visualizer renders up to 6 surrounding bounds." };
+                return { error: "Steric capability limits reached. Visualizer renders up to 6 coordinate domains." };
             }
 
-            // Derive realistic hybrid calculations
-            const steric = Math.min(Math.max(totalLigands, 2), 6);
-            const lonePairs = Math.max(0, Math.floor((centralAtom.valence - totalLigands) / 2));
+            // Calculate valence electrons dynamically to compute Lone Pairs correctly
+            let centralValence = centralAtom.valence;
+            let ligandBonds = totalLigands; 
+
+            // Subtract bonding electrons from valence shell of central atom
+            let remainingValenceElectrons = centralValence - ligandBonds;
+
+            if (remainingValenceElectrons < 0) {
+                return { error: `Structure chemically impossible. "${centralAtom.name}" only has ${centralValence} valence electrons, which is not enough to bind ${totalLigands} "${ligandAtom.name}" atom(s).` };
+            }
+
+            const lonePairs = Math.max(0, Math.floor(remainingValenceElectrons / 2));
+            const steric = totalLigands + lonePairs;
+
+            if (steric > 6) {
+                return { error: `The steric number (${steric}) of this compound exceeds visual geometry limits.` };
+            }
 
             return {
-                name: `Synthetic: ${formula}`,
+                name: `${formula.toUpperCase()}`,
                 central: centralSymbol,
                 ligand: ligandSymbol,
                 steric: steric,
@@ -521,14 +521,13 @@
             return label;
         }
 
-        // Deep cleaning utility to prevent HTML CSS2D floating DOM residue
         function clearSceneAndLabels() {
             // Remove 3D geometries
             while (compoundGroup.children.length > 0) {
                 const obj = compoundGroup.children[0];
                 compoundGroup.remove(obj);
             }
-            // Force clean any lingering CSS2D DOM elements inside label layer container
+            // Clear floating CSS2D HTML elements
             const labelContainer = labelRenderer.domElement;
             while (labelContainer.firstChild) {
                 labelContainer.removeChild(labelContainer.firstChild);
@@ -573,7 +572,7 @@
                 outerMesh.position.copy(targetPos);
                 compoundGroup.add(outerMesh);
 
-                // Correct ligand label assignments on their target coordinates
+                // Correct ligand label assignments
                 const outerLabel = createAtomLabel(ligand, new THREE.Vector3(0, 0.9, 0));
                 outerMesh.add(outerLabel);
 
