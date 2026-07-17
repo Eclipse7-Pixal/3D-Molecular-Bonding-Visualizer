@@ -23,7 +23,7 @@
             background-color: #030712;
             overflow: hidden;
             height: 100vh;
-            height: 100dvh; /* Dynamic viewport height for mobile browsers */
+            height: 100dvh;
         }
         .code-font {
             font-family: 'JetBrains Mono', monospace;
@@ -76,6 +76,17 @@
         ::-webkit-scrollbar-thumb:hover {
             background: rgba(255,255,255,0.25);
         }
+        /* Fullscreen pseudo adjustments */
+        :-webkit-full-screen #canvas-wrapper {
+            width: 100% !important;
+            height: 100% !important;
+            border-radius: 0px !important;
+        }
+        :fullscreen #canvas-wrapper {
+            width: 100% !important;
+            height: 100% !important;
+            border-radius: 0px !important;
+        }
     </style>
 </head>
 <body class="text-gray-100 flex flex-col justify-between selection:bg-indigo-500/30">
@@ -105,10 +116,6 @@
             </div>
         </div>
         <div class="flex items-center space-x-2">
-            <!-- Mobile Toggle Dashboard Trigger Button -->
-            <button onclick="toggleMobilePanel()" class="lg:hidden text-xs px-3 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 transition duration-200 flex items-center gap-1.5 font-medium">
-                <i class="fa-solid fa-sliders"></i> Controls
-            </button>
             <a href="https://eclipse7.odoo.com/" target="_blank" class="text-xs px-3 lg:px-4 py-2 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 transition duration-200 flex items-center gap-2">
                 <i class="fa-solid fa-globe"></i> <span class="hidden sm:inline">Visit Platform</span>
             </a>
@@ -116,10 +123,10 @@
     </header>
 
     <!-- Main Workspace -->
-    <main class="flex-1 relative lg:grid lg:grid-cols-12 gap-6 p-4 lg:p-6 overflow-hidden h-[calc(100vh-65px)] lg:h-[calc(100vh-73px)]">
+    <main class="flex-1 relative flex flex-col lg:grid lg:grid-cols-12 gap-4 lg:gap-6 p-4 lg:p-6 overflow-hidden h-[calc(100vh-65px)] lg:h-[calc(100vh-73px)]">
         
         <!-- Sidebar Panel Container (Responsive Drawer on Mobile) -->
-        <div id="sidebarPanel" class="hidden lg:flex fixed inset-0 top-[65px] z-40 lg:static lg:z-0 lg:col-span-4 flex-col gap-4 bg-gray-950/95 lg:bg-transparent p-4 lg:p-0 overflow-y-auto pr-1 transition-all duration-300">
+        <div id="sidebarPanel" class="hidden lg:flex fixed inset-0 top-0 lg:top-[73px] z-[60] lg:static lg:z-0 lg:col-span-4 flex-col gap-4 bg-gray-950/95 lg:bg-transparent p-4 lg:p-0 overflow-y-auto pr-1 transition-all duration-300">
             
             <!-- Mobile Drawer Header Close Control -->
             <div class="flex lg:hidden justify-between items-center pb-2 border-b border-white/10 mb-2">
@@ -208,24 +215,33 @@
             </div>
         </div>
 
-        <!-- Right Panel: 3D Scene Viewport -->
-        <div class="w-full lg:col-span-8 flex flex-col h-full relative glassmorphism rounded-2xl overflow-hidden min-h-[350px]">
+        <!-- Right Panel: 3D Scene Viewport Wrapper -->
+        <div id="canvas-wrapper" class="w-full flex-1 lg:col-span-8 flex flex-col h-full relative glassmorphism rounded-2xl overflow-hidden min-h-[0] lg:min-h-[350px]">
             <div id="canvas-container" class="w-full h-full cursor-grab active:cursor-grabbing relative"></div>
             
             <!-- Controls Overlay -->
-            <div class="absolute top-3 left-3 pointer-events-auto flex flex-wrap gap-2 max-w-[calc(100%-24px)]">
+            <div class="absolute top-3 left-3 pointer-events-auto flex flex-wrap gap-2 max-w-[calc(100%-24px)] z-20">
                 <button onclick="resetCamera()" class="p-2 rounded-lg bg-black/60 hover:bg-black/80 border border-white/10 text-[11px] flex items-center gap-1.5 transition duration-200">
                     <i class="fa-solid fa-arrows-spin"></i> Reset View
                 </button>
                 <button id="rotationToggle" onclick="toggleRotation()" class="p-2 rounded-lg bg-black/60 hover:bg-black/80 border border-white/10 text-[11px] flex items-center gap-1.5 transition duration-200">
                     <i class="fa-solid fa-rotate"></i> Auto-Spin: ON
                 </button>
+                <!-- Full Screen Toggle Button -->
+                <button onclick="toggleFullscreen()" class="p-2 rounded-lg bg-black/60 hover:bg-black/80 border border-white/10 text-[11px] flex items-center gap-1.5 transition duration-200" title="Toggle Fullscreen">
+                    <i id="fullscreenIcon" class="fa-solid fa-expand"></i>
+                </button>
             </div>
             
-            <div class="absolute bottom-3 left-3 right-3 sm:left-auto sm:right-3 bg-black/75 px-3 py-1.5 rounded-md border border-white/5 text-[10px] text-gray-400 text-center sm:text-left pointer-events-none">
+            <div class="absolute bottom-3 left-3 right-3 sm:left-auto sm:right-3 bg-black/75 px-3 py-1.5 rounded-md border border-white/5 text-[10px] text-gray-400 text-center sm:text-left pointer-events-none z-20">
                 <i class="fa-solid fa-circle-info mr-1 text-indigo-400"></i> Touch/drag to spin. Pinch/scroll to zoom.
             </div>
         </div>
+
+        <!-- Persistent Floating Action Button (FAB) for Controls Panel on Mobile Viewports -->
+        <button onclick="toggleMobilePanel()" class="lg:hidden fixed bottom-16 right-4 z-50 p-4 bg-indigo-600 text-white rounded-full shadow-2xl shadow-indigo-600/50 flex items-center justify-center border border-indigo-400/20 active:scale-95 transition-transform" aria-label="Open controls panel">
+            <i class="fa-solid fa-sliders text-xl"></i>
+        </button>
 
     </main>
 
@@ -249,6 +265,37 @@
             }
         }
 
+        // Fullscreen Interface Engine API Wrapper
+        function toggleFullscreen() {
+            const container = document.getElementById('canvas-wrapper');
+            const icon = document.getElementById('fullscreenIcon');
+            
+            if (!document.fullscreenElement) {
+                container.requestFullscreen().then(() => {
+                    icon.className = "fa-solid fa-compress";
+                    setTimeout(onWindowResize, 100);
+                }).catch(err => {
+                    console.error(`Error enabling fullscreen: ${err.message}`);
+                });
+            } else {
+                document.exitFullscreen().then(() => {
+                    icon.className = "fa-solid fa-expand";
+                    setTimeout(onWindowResize, 100);
+                });
+            }
+        }
+
+        // Listen for internal escape keys or system changes to clean up fullscreen configurations
+        document.addEventListener('fullscreenchange', () => {
+            const icon = document.getElementById('fullscreenIcon');
+            if (!document.fullscreenElement) {
+                icon.className = "fa-solid fa-expand";
+            } else {
+                icon.className = "fa-solid fa-compress";
+            }
+            setTimeout(onWindowResize, 150);
+        });
+
         // Responsive Viewport Logic
         function checkViewportSize() {
             const banner = document.getElementById('responsive-banner');
@@ -269,15 +316,20 @@
                 panel.classList.add('hidden');
                 panel.classList.remove('flex');
             }
+            setTimeout(onWindowResize, 100);
         }
 
         function dismissBanner() {
             const banner = document.getElementById('responsive-banner');
             banner.classList.add('hidden');
             sessionStorage.setItem('bannerDismissed', 'true');
+            setTimeout(onWindowResize, 100);
         }
 
         window.addEventListener('resize', checkViewportSize);
+        window.addEventListener('orientationchange', () => {
+            setTimeout(checkViewportSize, 200);
+        });
 
         // Complete Periodic Table Database (s, p, and d blocks)
         const PERIODIC_TABLE = {
@@ -367,7 +419,7 @@
 
             renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
             renderer.setSize(width, height);
-            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // Dynamic scaling boundary cap
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
             renderer.shadowMap.enabled = true;
             container.appendChild(renderer.domElement);
 
