@@ -75,6 +75,17 @@
 </head>
 <body class="text-gray-100 flex flex-col justify-between selection:bg-indigo-500/30">
 
+    <!-- Responsive Viewport Target Notification Banner -->
+    <div id="responsive-banner" class="hidden z-[100] bg-indigo-950/90 border-b border-indigo-500/30 text-indigo-200 px-4 py-3 text-center text-xs backdrop-blur-md relative flex items-center justify-center gap-2 transition-all duration-300">
+        <div class="flex items-center gap-2">
+            <i class="fa-solid fa-display text-indigo-400"></i>
+            <span>This web platform is fully optimized for <strong>Desktop screens, Digital Smartboards, and Tablets</strong>. Please switch to landscape or a wider screen layout for the intended 3D interactive layout.</span>
+        </div>
+        <button onclick="dismissBanner()" class="absolute right-4 hover:text-white transition p-1" aria-label="Dismiss">
+            <i class="fa-solid fa-xmark text-sm"></i>
+        </button>
+    </div>
+
     <!-- Header Navigation -->
     <header class="glassmorphism sticky top-0 z-50 px-6 py-3.5 flex items-center justify-between border-b border-white/5">
         <div class="flex items-center space-x-3">
@@ -204,6 +215,27 @@
 
     <!-- Three.js Visualizer Engine -->
     <script>
+        // Responsive Viewport Logic
+        function checkViewportSize() {
+            const banner = document.getElementById('responsive-banner');
+            const isDismissed = sessionStorage.getItem('bannerDismissed') === 'true';
+            
+            // Displays banner on small mobile viewports (< 768px width)
+            if (window.innerWidth < 768 && !isDismissed) {
+                banner.classList.remove('hidden');
+            } else {
+                banner.classList.add('hidden');
+            }
+        }
+
+        function dismissBanner() {
+            const banner = document.getElementById('responsive-banner');
+            banner.classList.add('hidden');
+            sessionStorage.setItem('bannerDismissed', 'true');
+        }
+
+        window.addEventListener('resize', checkViewportSize);
+
         // Complete Periodic Table Database (s, p, and d blocks)
         const PERIODIC_TABLE = {
             'H':  { name: 'Hydrogen', valence: 1, maxBonds: 1, color: 0xFFFFFF },
@@ -367,7 +399,6 @@
             const r = 2.8; 
             
             if (steric === 1) {
-                // Diatomic molecules (like NaCl, HCl, HF)
                 positions.push(new THREE.Vector3(r, 0, 0));
             }
             else if (steric === 2) {
@@ -403,21 +434,18 @@
             return positions;
         }
 
-        // Upgraded Chemistry Parser supporting Ions, Charges, and Homonuclear Species
         function parseFormulaChemically(formula) {
-            // 1. Extract and normalize charges (e.g., PO4 3- or NO2 - or I3-)
             let charge = 0;
-            let workingFormula = formula.replace(/\s+/g, ''); // Remove spaces
+            let workingFormula = formula.replace(/\s+/g, '');
             
             const chargeMatch = workingFormula.match(/([0-9]*)([\+\-])+$/);
             if (chargeMatch) {
                 const sign = chargeMatch[2];
                 const amount = chargeMatch[1] ? parseInt(chargeMatch[1]) : 1;
                 charge = (sign === '+') ? amount : -amount;
-                workingFormula = workingFormula.substring(0, chargeMatch.index); // Strip charge
+                workingFormula = workingFormula.substring(0, chargeMatch.index);
             }
 
-            // 2. Parse Elements and counts
             const pattern = /([A-Z][a-z]?)(\d*)/g;
             const parsedElements = [];
             let match;
@@ -432,19 +460,16 @@
                 return { error: "Please enter a valid chemical formula (e.g., PO4 3-, I3-, NaCl)." };
             }
 
-            // Validate periodic table presence
             for (let el of parsedElements) {
                 if (!PERIODIC_TABLE[el.element.toUpperCase()]) {
                     return { error: `Element symbol "${el.element}" is not valid.` };
                 }
             }
 
-            // 3. Determine Central vs. Ligand Atoms
             let centralSymbol = '';
             let ligandsList = [];
             
             if (parsedElements.length === 1) {
-                // Homonuclear molecule (e.g. O3 or I3 or F2)
                 const singleSymbol = parsedElements[0].element;
                 if (parsedElements[0].count < 2) {
                     return { error: "Formulas require at least two atoms to visualize bonds." };
@@ -452,8 +477,6 @@
                 centralSymbol = singleSymbol;
                 ligandsList.push({ element: singleSymbol, count: parsedElements[0].count - 1 });
             } else {
-                // Heteronuclear (e.g., PO4, NaCl)
-                // Select first element (or second if first is Hydrogen and there are options)
                 let centralIdx = 0;
                 if (parsedElements[0].element.toUpperCase() === 'H' && parsedElements.length > 1) {
                     centralIdx = 1; 
@@ -476,22 +499,16 @@
             }
 
             const ligandAtom = PERIODIC_TABLE[ligandSymbol.toUpperCase()];
-
-            // 4. Valence & VSEPR Calculations with Ion Support
-            // Add/Subtract charge electrons from central valence pool (Anion: add; Cation: subtract)
             let centralValence = centralAtom.valence - charge;
             
-            // Limit bounds checks
             if (centralValence < 0) {
                 return { error: `Positive charge is too high. Element "${centralAtom.name}" does not possess enough electrons.` };
             }
 
-            // Calculate Steric Number
             let remainingValenceElectrons = centralValence - totalLigands;
             let lonePairs = Math.max(0, Math.floor(remainingValenceElectrons / 2));
             let steric = totalLigands + lonePairs;
 
-            // Enforce hard constraints on render engine
             if (steric > 6) {
                 return { error: `Steric number (${steric}) of this configuration exceeds visualizer rendering limits (Max: 6).` };
             }
@@ -563,7 +580,6 @@
             const centralColor = PERIODIC_TABLE[central.toUpperCase()]?.color || 0x9E9E9E;
             const ligandColor = PERIODIC_TABLE[ligand.toUpperCase()]?.color || 0x9E9E9E;
 
-            // 1. Central Atom Mesh
             const centralGeometry = new THREE.SphereGeometry(1.0, 32, 32);
             const centralMaterial = new THREE.MeshPhongMaterial({
                 color: centralColor,
@@ -579,7 +595,6 @@
             const coords = getCoordinates(steric);
             const bondingCount = steric - lonePairs;
 
-            // 2. Bond Pairs & Outer Ligands
             for (let i = 0; i < bondingCount; i++) {
                 const targetPos = coords[i];
 
@@ -608,7 +623,6 @@
                 compoundGroup.add(bondMesh);
             }
 
-            // 3. Lone Pairs (Pink orbital lobes)
             for (let i = bondingCount; i < steric; i++) {
                 const targetPos = coords[i];
                 const direction = new THREE.Vector3().copy(targetPos).normalize();
@@ -686,6 +700,7 @@
         });
 
         window.onload = () => {
+            checkViewportSize();
             init3D();
             document.getElementById('formulaInput').value = 'H2O';
             visualizeInput();
