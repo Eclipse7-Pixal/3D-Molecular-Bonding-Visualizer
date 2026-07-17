@@ -21,15 +21,17 @@
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
             background-color: #030712;
-            overflow: hidden; /* Lock scroll on main page */
+            overflow: hidden;
             height: 100vh;
+            height: 100dvh; /* Dynamic viewport height for mobile browsers */
         }
         .code-font {
             font-family: 'JetBrains Mono', monospace;
         }
         .glassmorphism {
-            background: rgba(17, 24, 39, 0.7);
+            background: rgba(17, 24, 39, 0.75);
             backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
             border: 1px solid rgba(255, 255, 255, 0.08);
         }
         .glass-input {
@@ -42,24 +44,27 @@
             box-shadow: 0 0 15px rgba(99, 102, 241, 0.2);
             outline: none;
         }
-        /* Style for 3D overlay labels */
         .atom-label {
             color: #ffffff;
             font-family: 'JetBrains Mono', monospace;
             font-weight: bold;
-            font-size: 13px;
-            background: rgba(15, 23, 42, 0.85);
+            font-size: 11px;
+            background: rgba(15, 23, 42, 0.9);
             padding: 2px 6px;
             border-radius: 4px;
             border: 1px solid rgba(255, 255, 255, 0.15);
             pointer-events: none;
             white-space: nowrap;
             text-shadow: 0 1px 2px rgba(0,0,0,0.8);
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
         }
-        /* Custom scrollbar for left side panel */
+        @media (min-width: 768px) {
+            .atom-label {
+                font-size: 13px;
+            }
+        }
         ::-webkit-scrollbar {
-            width: 6px;
+            width: 5px;
         }
         ::-webkit-scrollbar-track {
             background: rgba(0,0,0,0.1);
@@ -75,52 +80,63 @@
 </head>
 <body class="text-gray-100 flex flex-col justify-between selection:bg-indigo-500/30">
 
-    <!-- Responsive Viewport Target Notification Banner -->
-    <div id="responsive-banner" class="hidden z-[100] bg-indigo-950/90 border-b border-indigo-500/30 text-indigo-200 px-4 py-3 text-center text-xs backdrop-blur-md relative flex items-center justify-center gap-2 transition-all duration-300">
-        <div class="flex items-center gap-2">
-            <i class="fa-solid fa-display text-indigo-400"></i>
-            <span>This web platform is fully optimized for <strong>Desktop screens, Digital Smartboards, and Tablets</strong>. Please switch to landscape or a wider screen layout for the intended 3D interactive layout.</span>
+    <!-- Responsive Viewport Notification Banner -->
+    <div id="responsive-banner" class="hidden z-[100] bg-indigo-950/90 border-b border-indigo-500/30 text-indigo-200 px-4 py-2.5 text-center text-xs backdrop-blur-md relative flex items-center justify-center gap-2 transition-all duration-300">
+        <div class="flex items-center gap-2 pr-6">
+            <i class="fa-solid fa-mobile-screen text-indigo-400"></i>
+            <span>Tip: Rotate your phone to landscape layout for an expanded view of the 3D canvas environment.</span>
         </div>
-        <button onclick="dismissBanner()" class="absolute right-4 hover:text-white transition p-1" aria-label="Dismiss">
+        <button onclick="dismissBanner()" class="absolute right-3 hover:text-white transition p-1" aria-label="Dismiss">
             <i class="fa-solid fa-xmark text-sm"></i>
         </button>
     </div>
 
     <!-- Header Navigation -->
-    <header class="glassmorphism sticky top-0 z-50 px-6 py-3.5 flex items-center justify-between border-b border-white/5">
+    <header class="glassmorphism sticky top-0 z-50 px-4 lg:px-6 py-3 flex items-center justify-between border-b border-white/5">
         <div class="flex items-center space-x-3">
-            <!-- Custom logo.ico Webpage Brand Logo -->
-            <img src="logo.ico" alt="ECLIPSE7 Logo" class="w-10 h-10 rounded-xl object-contain shadow-lg shadow-indigo-500/10">
+            <img src="logo.ico" alt="ECLIPSE7 Logo" class="w-8 h-8 lg:w-10 lg:h-10 rounded-xl object-contain shadow-lg shadow-indigo-500/10">
             <div>
                 <div class="flex items-center gap-1.5">
-                    <h1 class="text-lg font-bold tracking-tight bg-gradient-to-r from-white via-gray-200 to-gray-400 bg-clip-text text-transparent">ECLIPSE7</h1>
-                    <span class="text-xs text-gray-400 font-medium">by Prasad Reddy</span>
-                    <i class="fa-solid fa-circle-check text-blue-500 text-xs shadow-sm" title="Verified Creator"></i>
+                    <h1 class="text-base lg:text-lg font-bold tracking-tight bg-gradient-to-r from-white via-gray-200 to-gray-400 bg-clip-text text-transparent">ECLIPSE7</h1>
+                    <span class="text-[10px] lg:text-xs text-gray-400 font-medium hidden sm:inline">by Prasad Reddy</span>
+                    <i class="fa-solid fa-circle-check text-blue-500 text-[10px] lg:text-xs shadow-sm" title="Verified Creator"></i>
                 </div>
-                <p class="text-[11px] text-indigo-400 font-medium">3D Molecular Geometry Visualizer</p>
+                <p class="text-[10px] lg:text-[11px] text-indigo-400 font-medium">3D Molecular Geometry Visualizer</p>
             </div>
         </div>
-        <div class="flex items-center space-x-4">
-            <a href="https://eclipse7.odoo.com/" target="_blank" class="text-xs px-4 py-2 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 transition duration-200 flex items-center gap-2">
-                <i class="fa-solid fa-globe"></i> Visit Platform
+        <div class="flex items-center space-x-2">
+            <!-- Mobile Toggle Dashboard Trigger Button -->
+            <button onclick="toggleMobilePanel()" class="lg:hidden text-xs px-3 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 transition duration-200 flex items-center gap-1.5 font-medium">
+                <i class="fa-solid fa-sliders"></i> Controls
+            </button>
+            <a href="https://eclipse7.odoo.com/" target="_blank" class="text-xs px-3 lg:px-4 py-2 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 transition duration-200 flex items-center gap-2">
+                <i class="fa-solid fa-globe"></i> <span class="hidden sm:inline">Visit Platform</span>
             </a>
         </div>
     </header>
 
     <!-- Main Workspace -->
-    <main class="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-6 p-6 overflow-hidden h-[calc(100vh-73px)]">
+    <main class="flex-1 relative lg:grid lg:grid-cols-12 gap-6 p-4 lg:p-6 overflow-hidden h-[calc(100vh-65px)] lg:h-[calc(100vh-73px)]">
         
-        <!-- Left Panel: Input & Properties (Scrollable inside) -->
-        <div class="lg:col-span-4 flex flex-col gap-4 h-full overflow-y-auto pr-1">
+        <!-- Sidebar Panel Container (Responsive Drawer on Mobile) -->
+        <div id="sidebarPanel" class="hidden lg:flex fixed inset-0 top-[65px] z-40 lg:static lg:z-0 lg:col-span-4 flex-col gap-4 bg-gray-950/95 lg:bg-transparent p-4 lg:p-0 overflow-y-auto pr-1 transition-all duration-300">
             
+            <!-- Mobile Drawer Header Close Control -->
+            <div class="flex lg:hidden justify-between items-center pb-2 border-b border-white/10 mb-2">
+                <span class="text-sm font-bold text-gray-200 tracking-wide">Visualizer Dashboard</span>
+                <button onclick="toggleMobilePanel()" class="text-gray-400 hover:text-white p-2">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
             <!-- Compound Input Panel -->
-            <div class="glassmorphism rounded-2xl p-5 flex flex-col gap-4">
+            <div class="glassmorphism rounded-2xl p-4 lg:p-5 flex flex-col gap-4">
                 <h2 class="text-xs font-semibold text-gray-400 uppercase tracking-wider flex items-center gap-2">
                     <i class="fa-solid fa-keyboard text-indigo-400"></i> Type Compound / Ion Formula
                 </h2>
                 <div class="relative">
                     <input type="text" id="formulaInput" placeholder="Enter SF6, NO2 -, I3-, O3, NaCl..." 
-                        class="w-full text-2xl font-bold tracking-wider py-3.5 px-5 rounded-xl glass-input text-white text-center">
+                        class="w-full text-xl lg:text-2xl font-bold tracking-wider py-3 px-4 rounded-xl glass-input text-white text-center">
                 </div>
                 
                 <!-- Chemical Error Output Warning -->
@@ -133,43 +149,43 @@
                     <button onclick="clearFormula()" class="py-2.5 rounded-lg bg-red-500/10 border border-red-500/20 hover:bg-red-500/20 text-red-400 font-semibold text-xs transition duration-200">
                         <i class="fa-solid fa-trash-can mr-1.5"></i> CLEAR ALL
                     </button>
-                    <button onclick="visualizeInput()" class="py-2.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs transition duration-200 shadow-md shadow-indigo-600/10">
+                    <button onclick="visualizeInput(); autoCloseMobilePanel();" class="py-2.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs transition duration-200 shadow-md shadow-indigo-600/10">
                         <i class="fa-solid fa-wand-magic-sparkles mr-1.5"></i> GENERATE 3D
                     </button>
                 </div>
             </div>
 
             <!-- Chemical Properties Dashboard -->
-            <div id="dashboard" class="glassmorphism rounded-2xl p-5 flex-1 flex flex-col justify-between overflow-y-auto">
+            <div id="dashboard" class="glassmorphism rounded-2xl p-4 lg:p-5 flex-1 flex flex-col justify-between gap-4 overflow-y-auto">
                 <div>
                     <h2 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4 flex items-center gap-2">
                         <i class="fa-solid fa-chart-simple text-indigo-400"></i> Structural Analysis
                     </h2>
                     
                     <!-- Structural Stats Dynamic Grid -->
-                    <div class="grid grid-cols-2 gap-3 mb-6">
-                        <div class="bg-white/5 border border-white/5 p-3 rounded-xl">
-                            <span class="text-[10px] text-gray-400 block mb-1">Compound/Ion Name</span>
+                    <div class="grid grid-cols-2 gap-2.5 mb-2">
+                        <div class="bg-white/5 border border-white/5 p-2.5 rounded-xl">
+                            <span class="text-[10px] text-gray-400 block mb-0.5">Compound/Ion Name</span>
                             <span id="propName" class="font-semibold text-xs text-indigo-300">-</span>
                         </div>
-                        <div class="bg-white/5 border border-white/5 p-3 rounded-xl">
-                            <span class="text-[10px] text-gray-400 block mb-1">Electron Geometry</span>
+                        <div class="bg-white/5 border border-white/5 p-2.5 rounded-xl">
+                            <span class="text-[10px] text-gray-400 block mb-0.5">Electron Geometry</span>
                             <span id="propElectronGeom" class="font-semibold text-xs text-indigo-300">-</span>
                         </div>
-                        <div class="bg-white/5 border border-white/5 p-3 rounded-xl">
-                            <span class="text-[10px] text-gray-400 block mb-1">Molecular Geometry</span>
+                        <div class="bg-white/5 border border-white/5 p-2.5 rounded-xl">
+                            <span class="text-[10px] text-gray-400 block mb-0.5">Molecular Geometry</span>
                             <span id="propMolecularGeom" class="font-semibold text-xs text-indigo-300">-</span>
                         </div>
-                        <div class="bg-white/5 border border-white/5 p-3 rounded-xl">
-                            <span class="text-[10px] text-gray-400 block mb-1">Hybridization</span>
+                        <div class="bg-white/5 border border-white/5 p-2.5 rounded-xl">
+                            <span class="text-[10px] text-gray-400 block mb-0.5">Hybridization</span>
                             <span id="propHybrid" class="font-semibold text-xs code-font text-indigo-300">-</span>
                         </div>
-                        <div class="bg-white/5 border border-white/5 p-3 rounded-xl">
-                            <span class="text-[10px] text-gray-400 block mb-1">Bonding Pairs</span>
+                        <div class="bg-white/5 border border-white/5 p-2.5 rounded-xl">
+                            <span class="text-[10px] text-gray-400 block mb-0.5">Bonding Pairs</span>
                             <span id="propBonds" class="font-semibold text-xs text-indigo-300">-</span>
                         </div>
-                        <div class="bg-white/5 border border-white/5 p-3 rounded-xl">
-                            <span class="text-[10px] text-gray-400 block mb-1">Lone Pair</span>
+                        <div class="bg-white/5 border border-white/5 p-2.5 rounded-xl">
+                            <span class="text-[10px] text-gray-400 block mb-0.5">Lone Pair</span>
                             <span id="propLone" class="font-semibold text-xs text-indigo-300">-</span>
                         </div>
                     </div>
@@ -179,13 +195,13 @@
                 <div>
                     <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3">Color Legend</h3>
                     <div class="grid grid-cols-2 gap-2 text-[11px] text-gray-300">
-                        <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-red-500 inline-block"></span> Oxygen (O)</div>
-                        <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-slate-100 border border-slate-300 inline-block"></span> Hydrogen (H)</div>
-                        <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-neutral-800 inline-block"></span> Carbon (C)</div>
-                        <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-blue-500 inline-block"></span> Nitrogen (N)</div>
-                        <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-green-500 inline-block"></span> Halogens (F/Cl/Br/I)</div>
-                        <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-amber-400 inline-block"></span> Sulfur (S)</div>
-                        <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-fuchsia-500 opacity-60 inline-block"></span> Lone Pair Lobe</div>
+                        <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-red-500 inline-block shrink-0"></span> Oxygen (O)</div>
+                        <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-slate-100 border border-slate-300 inline-block shrink-0"></span> Hydrogen (H)</div>
+                        <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-neutral-800 inline-block shrink-0"></span> Carbon (C)</div>
+                        <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-blue-500 inline-block shrink-0"></span> Nitrogen (N)</div>
+                        <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-green-500 inline-block shrink-0"></span> Halogens</div>
+                        <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-amber-400 inline-block shrink-0"></span> Sulfur (S)</div>
+                        <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-fuchsia-500 opacity-60 inline-block shrink-0"></span> Lone Pair</div>
                     </div>
                 </div>
 
@@ -193,21 +209,21 @@
         </div>
 
         <!-- Right Panel: 3D Scene Viewport -->
-        <div class="lg:col-span-8 flex flex-col h-full relative glassmorphism rounded-2xl overflow-hidden min-h-[400px]">
+        <div class="w-full lg:col-span-8 flex flex-col h-full relative glassmorphism rounded-2xl overflow-hidden min-h-[350px]">
             <div id="canvas-container" class="w-full h-full cursor-grab active:cursor-grabbing relative"></div>
             
             <!-- Controls Overlay -->
-            <div class="absolute top-4 left-4 pointer-events-auto flex gap-2">
-                <button onclick="resetCamera()" class="p-2.5 rounded-lg bg-black/60 hover:bg-black/80 border border-white/10 text-xs flex items-center gap-1.5 transition duration-200">
+            <div class="absolute top-3 left-3 pointer-events-auto flex flex-wrap gap-2 max-w-[calc(100%-24px)]">
+                <button onclick="resetCamera()" class="p-2 rounded-lg bg-black/60 hover:bg-black/80 border border-white/10 text-[11px] flex items-center gap-1.5 transition duration-200">
                     <i class="fa-solid fa-arrows-spin"></i> Reset View
                 </button>
-                <button id="rotationToggle" onclick="toggleRotation()" class="p-2.5 rounded-lg bg-black/60 hover:bg-black/80 border border-white/10 text-xs flex items-center gap-1.5 transition duration-200">
+                <button id="rotationToggle" onclick="toggleRotation()" class="p-2 rounded-lg bg-black/60 hover:bg-black/80 border border-white/10 text-[11px] flex items-center gap-1.5 transition duration-200">
                     <i class="fa-solid fa-rotate"></i> Auto-Spin: ON
                 </button>
             </div>
             
-            <div class="absolute bottom-4 right-4 bg-black/75 px-3 py-1.5 rounded-md border border-white/5 text-[11px] text-gray-400">
-                <i class="fa-solid fa-circle-info mr-1 text-indigo-400"></i> Touch or drag to spin. Scroll to zoom.
+            <div class="absolute bottom-3 left-3 right-3 sm:left-auto sm:right-3 bg-black/75 px-3 py-1.5 rounded-md border border-white/5 text-[10px] text-gray-400 text-center sm:text-left pointer-events-none">
+                <i class="fa-solid fa-circle-info mr-1 text-indigo-400"></i> Touch/drag to spin. Pinch/scroll to zoom.
             </div>
         </div>
 
@@ -215,16 +231,43 @@
 
     <!-- Three.js Visualizer Engine -->
     <script>
+        // Mobile Navigation Viewport Toggle State
+        function toggleMobilePanel() {
+            const panel = document.getElementById('sidebarPanel');
+            if (panel.classList.contains('hidden')) {
+                panel.classList.remove('hidden');
+                panel.classList.add('flex');
+            } else {
+                panel.classList.add('hidden');
+                panel.classList.remove('flex');
+            }
+        }
+
+        function autoCloseMobilePanel() {
+            if (window.innerWidth < 1024) {
+                toggleMobilePanel();
+            }
+        }
+
         // Responsive Viewport Logic
         function checkViewportSize() {
             const banner = document.getElementById('responsive-banner');
             const isDismissed = sessionStorage.getItem('bannerDismissed') === 'true';
             
-            // Displays banner on small mobile viewports (< 768px width)
             if (window.innerWidth < 768 && !isDismissed) {
                 banner.classList.remove('hidden');
             } else {
                 banner.classList.add('hidden');
+            }
+
+            // Sync structural panels safely if screen boundary crosses layout triggers
+            const panel = document.getElementById('sidebarPanel');
+            if (window.innerWidth >= 1024) {
+                panel.classList.remove('hidden');
+                panel.classList.add('flex');
+            } else if (!panel.classList.contains('bg-gray-950/95')) {
+                panel.classList.add('hidden');
+                panel.classList.remove('flex');
             }
         }
 
@@ -324,7 +367,7 @@
 
             renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
             renderer.setSize(width, height);
-            renderer.setPixelRatio(window.devicePixelRatio);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // Dynamic scaling boundary cap
             renderer.shadowMap.enabled = true;
             container.appendChild(renderer.domElement);
 
@@ -373,6 +416,8 @@
 
         function onWindowResize() {
             const container = document.getElementById('canvas-container');
+            if (!container || !renderer) return;
+            
             camera.aspect = container.clientWidth / container.clientHeight;
             camera.updateProjectionMatrix();
             renderer.setSize(container.clientWidth, container.clientHeight);
@@ -696,6 +741,7 @@
         document.getElementById('formulaInput').addEventListener('keypress', function (e) {
             if (e.key === 'Enter') {
                 visualizeInput();
+                autoCloseMobilePanel();
             }
         });
 
