@@ -1,0 +1,50 @@
+name: Toggle Maintenance Mode
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'Select Mode'
+        required: true
+        default: 'ON'
+        type: choice
+        options:
+          - 'ON'
+          - 'OFF'
+
+permissions:
+  contents: write
+
+jobs:
+  toggle-maintenance:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Enable Maintenance Mode
+        if: ${{ github.event.inputs.mode == 'ON' }}
+        run: |
+          cp index.html index.html.bak
+          cp maintenance.html index.html
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add index.html index.html.bak
+          git commit -m "CHORE: Enable maintenance mode" || exit 0
+          git push
+
+      - name: Disable Maintenance Mode
+        if: ${{ github.event.inputs.mode == 'OFF' }}
+        run: |
+          if [ -f index.html.bak ]; then
+            mv index.html.bak index.html
+          else
+            git checkout HEAD~1 index.html
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git commit -m "CHORE: Disable maintenance mode" || exit 0
+          git push
