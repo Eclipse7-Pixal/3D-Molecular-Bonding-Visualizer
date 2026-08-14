@@ -3,799 +3,379 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ECLIPSE7 | Universal 3D Molecular Bonding Visualizer</title>
-    <!-- Browser Tab Icon (Favicon) -->
-    <link rel="icon" type="image/x-icon" href="logo.ico">
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
-    <!-- Three.js + OrbitControls + CSS2DRenderer -->
+    <title>Universal 3D VSEPR Molecular Engine</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { display: flex; height: 100vh; background-color: #0b0f19; color: #e2e8f0; overflow: hidden; }
+        
+        #sidebar { width: 340px; background: #111827; padding: 20px; display: flex; flex-direction: column; gap: 20px; border-right: 1px solid #1f2937; z-index: 10; }
+        #canvas-container { flex: 1; position: relative; }
+        
+        h1 { font-size: 1.25rem; font-weight: 700; color: #38bdf8; display: flex; align-items: center; gap: 8px; }
+        .input-group { display: flex; flex-direction: column; gap: 8px; }
+        label { font-size: 0.85rem; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; }
+        
+        input[type="text"] { background: #1f2937; border: 1px solid #374151; color: #fff; padding: 12px; border-radius: 8px; font-size: 1.1rem; font-weight: 600; outline: none; }
+        input[type="text"]:focus { border-color: #38bdf8; }
+        
+        button { background: #2563eb; color: #fff; border: none; padding: 12px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: background 0.2s; }
+        button:hover { background: #1d4ed8; }
+        
+        .card { background: #1f2937; padding: 16px; border-radius: 8px; border: 1px solid #374151; }
+        .card h3 { font-size: 0.9rem; color: #9ca3af; margin-bottom: 12px; border-bottom: 1px solid #374151; padding-bottom: 6px; }
+        .info-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.9rem; }
+        .info-value { font-weight: 600; color: #f3f4f6; }
+        
+        #legend { display: flex; flex-wrap: wrap; gap: 8px; }
+        .legend-item { display: flex; align-items: center; gap: 6px; font-size: 0.8rem; background: #111827; padding: 4px 8px; border-radius: 4px; }
+        .color-dot { width: 12px; height: 12px; border-radius: 50%; }
+        
+        #error-msg { color: #f87171; font-size: 0.85rem; display: none; margin-top: -10px; }
+    </style>
+    <!-- Three.js & OrbitControls -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/renderers/CSS2DRenderer.js"></script>
-    
-    <style>
-        body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            background-color: #030712;
-            overflow: hidden;
-            height: 100vh;
-            height: 100dvh;
-        }
-        .code-font {
-            font-family: 'JetBrains Mono', monospace;
-        }
-        .glassmorphism {
-            background: rgba(17, 24, 39, 0.75);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-        }
-        .glass-input {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            transition: all 0.3s ease;
-        }
-        .glass-input:focus {
-            border-color: #6366f1;
-            box-shadow: 0 0 15px rgba(99, 102, 241, 0.2);
-            outline: none;
-        }
-        .atom-label {
-            color: #ffffff;
-            font-family: 'JetBrains Mono', monospace;
-            font-weight: bold;
-            font-size: 11px;
-            background: rgba(15, 23, 42, 0.9);
-            padding: 2px 6px;
-            border-radius: 4px;
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            pointer-events: none;
-            white-space: nowrap;
-            text-shadow: 0 1px 2px rgba(0,0,0,0.8);
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        }
-        @media (min-width: 768px) {
-            .atom-label {
-                font-size: 13px;
-            }
-        }
-        ::-webkit-scrollbar {
-            width: 5px;
-        }
-        ::-webkit-scrollbar-track {
-            background: rgba(0,0,0,0.1);
-        }
-        ::-webkit-scrollbar-thumb {
-            background: rgba(255,255,255,0.1);
-            border-radius: 10px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: rgba(255,255,255,0.25);
-        }
-
-        :-webkit-full-screen #canvas-wrapper {
-            width: 100% !important;
-            height: 100% !important;
-            border-radius: 0px !important;
-        }
-        :fullscreen #canvas-wrapper {
-            width: 100% !important;
-            height: 100% !important;
-            border-radius: 0px !important;
-        }
-
-        #intro-loader {
-            transition: transform 1.1s cubic-bezier(0.85, 0, 0.15, 1), 
-                        opacity 0.9s cubic-bezier(0.25, 1, 0.5, 1), 
-                        visibility 1.1s;
-            will-change: transform, opacity;
-        }
-        #intro-loader.exit-animate {
-            transform: translateY(-100%) scale(0.95);
-            opacity: 0;
-            visibility: hidden;
-        }
-        .video-container {
-            position: relative;
-            width: 100vw;
-            height: 100vh;
-            height: 100dvh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background-color: #000000;
-        }
-        #intro-video {
-            max-width: 100%;
-            max-height: 100%;
-            width: auto;
-            height: auto;
-            object-fit: contain;
-            box-shadow: 0 0 50px rgba(0, 0, 0, 0.8);
-            transition: transform 1.2s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        #intro-loader.exit-animate #intro-video {
-            transform: scale(0.9) translateY(30px);
-        }
-    </style>
 </head>
-<body class="text-gray-100 flex flex-col justify-between selection:bg-indigo-500/30">
+<body>
 
-    <!-- Video Loading Screen Interface Overlay -->
-    <div id="intro-loader" class="fixed inset-0 z-[9999] bg-black flex items-center justify-center overflow-hidden select-none">
-        <div class="video-container">
-            <video id="intro-video" src="Loading.mp4" playsinline muted autoplay></video>
-        </div>
-    </div>
-
-    <!-- Responsive Viewport Notification Banner -->
-    <div id="responsive-banner" class="hidden z-[100] bg-indigo-950/90 border-b border-indigo-500/30 text-indigo-200 px-4 py-2.5 text-center text-xs backdrop-blur-md relative flex items-center justify-center gap-2 transition-all duration-300">
-        <div class="flex items-center gap-2 pr-6">
-            <i class="fa-solid fa-mobile-screen text-indigo-400"></i>
-            <span>Tip: Rotate your phone to landscape layout for an expanded view of the 3D canvas environment.</span>
-        </div>
-        <button onclick="dismissBanner()" class="absolute right-3 hover:text-white transition p-1" aria-label="Dismiss">
-            <i class="fa-solid fa-xmark text-sm"></i>
-        </button>
-    </div>
-
-    <!-- Header Navigation -->
-    <header class="glassmorphism sticky top-0 z-50 px-4 lg:px-6 py-3 flex items-center justify-between border-b border-white/5">
-        <div class="flex items-center space-x-3">
-            <img src="logo.ico" alt="ECLIPSE7 Logo" class="w-8 h-8 lg:w-10 lg:h-10 rounded-xl object-contain shadow-lg shadow-indigo-500/10">
-            <div>
-                <div class="flex items-center gap-1.5">
-                    <h1 class="text-base lg:text-lg font-bold tracking-tight bg-gradient-to-r from-white via-gray-200 to-gray-400 bg-clip-text text-transparent">ECLIPSE7</h1>
-                    <span class="text-[10px] lg:text-xs text-gray-400 font-medium hidden sm:inline">by Prasad Reddy</span>
-                    <i class="fa-solid fa-circle-check text-blue-500 text-[10px] lg:text-xs shadow-sm" title="Verified Creator"></i>
-                </div>
-                <p class="text-[10px] lg:text-[11px] text-indigo-400 font-medium">Universal 3D Molecular Engine</p>
-            </div>
-        </div>
-        <div class="flex items-center space-x-2">
-            <a href="https://eclipse7.odoo.com/" target="_blank" class="text-xs px-3 lg:px-4 py-2 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 transition duration-200 flex items-center gap-2">
-                <i class="fa-solid fa-globe"></i> <span class="hidden sm:inline">Visit Platform</span>
-            </a>
-        </div>
-    </header>
-
-    <!-- Main Workspace -->
-    <main class="flex-1 relative flex flex-col lg:grid lg:grid-cols-12 gap-4 lg:gap-6 p-4 lg:p-6 overflow-hidden h-[calc(100vh-65px)] lg:h-[calc(100vh-73px)]">
+    <div id="sidebar">
+        <h1>Universal VSEPR Engine</h1>
         
-        <!-- Sidebar Panel Container -->
-        <div id="sidebarPanel" class="hidden lg:flex fixed inset-0 top-0 lg:top-[73px] z-[60] lg:static lg:z-0 lg:col-span-4 flex-col gap-4 bg-gray-950/95 lg:bg-transparent p-4 lg:p-0 overflow-y-auto pr-1 transition-all duration-300">
-            
-            <div class="flex lg:hidden justify-between items-center pb-2 border-b border-white/10 mb-2">
-                <span class="text-sm font-bold text-gray-200 tracking-wide">Visualizer Dashboard</span>
-                <button onclick="toggleMobilePanel()" class="text-gray-400 hover:text-white p-2">
-                    <i class="fa-solid fa-xmark text-lg"></i>
-                </button>
-            </div>
-
-            <!-- Compound Input Panel -->
-            <div class="glassmorphism rounded-2xl p-4 lg:p-5 flex flex-col gap-4">
-                <h2 class="text-xs font-semibold text-gray-400 uppercase tracking-wider flex items-center gap-2">
-                    <i class="fa-solid fa-keyboard text-indigo-400"></i> Any Formula / Ion / Molecule
-                </h2>
-                <div class="relative">
-                    <input type="text" id="formulaInput" placeholder="e.g. C6H12O6, CH3COOH, H2SO4, SF6, He, NO3-, NaCl..." 
-                        class="w-full text-lg lg:text-xl font-bold tracking-wider py-3 px-4 rounded-xl glass-input text-white text-center">
-                </div>
-                
-                <div id="loadingStatus" class="hidden bg-indigo-500/10 border border-indigo-500/30 rounded-xl p-3 text-xs text-indigo-300 flex items-center gap-2">
-                    <i class="fa-solid fa-spinner fa-spin text-indigo-400"></i>
-                    <span>Resolving molecular structure...</span>
-                </div>
-
-                <div id="errorBox" class="hidden bg-red-500/10 border border-red-500/30 rounded-xl p-3 text-xs text-red-400 flex items-start gap-2">
-                    <i class="fa-solid fa-triangle-exclamation mt-0.5"></i>
-                    <span id="errorMessage">Invalid Compound.</span>
-                </div>
-
-                <div class="grid grid-cols-2 gap-3">
-                    <button onclick="clearFormula()" class="py-2.5 rounded-lg bg-red-500/10 border border-red-500/20 hover:bg-red-500/20 text-red-400 font-semibold text-xs transition duration-200">
-                        <i class="fa-solid fa-trash-can mr-1.5"></i> CLEAR ALL
-                    </button>
-                    <button onclick="visualizeInput(); autoCloseMobilePanel();" class="py-2.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs transition duration-200 shadow-md shadow-indigo-600/10">
-                        <i class="fa-solid fa-wand-magic-sparkles mr-1.5"></i> GENERATE 3D
-                    </button>
-                </div>
-            </div>
-
-            <!-- Chemical Properties Dashboard -->
-            <div id="dashboard" class="glassmorphism rounded-2xl p-4 lg:p-5 flex-1 flex flex-col justify-between gap-4 overflow-y-auto">
-                <div>
-                    <h2 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4 flex items-center gap-2">
-                        <i class="fa-solid fa-chart-simple text-indigo-400"></i> Structural Analysis
-                    </h2>
-                    
-                    <div class="grid grid-cols-2 gap-2.5 mb-2">
-                        <div class="bg-white/5 border border-white/5 p-2.5 rounded-xl">
-                            <span class="text-[10px] text-gray-400 block mb-0.5">Name / Identifier</span>
-                            <span id="propName" class="font-semibold text-xs text-indigo-300">-</span>
-                        </div>
-                        <div class="bg-white/5 border border-white/5 p-2.5 rounded-xl">
-                            <span class="text-[10px] text-gray-400 block mb-0.5">Total Atoms</span>
-                            <span id="propAtomCount" class="font-semibold text-xs text-indigo-300">-</span>
-                        </div>
-                        <div class="bg-white/5 border border-white/5 p-2.5 rounded-xl">
-                            <span class="text-[10px] text-gray-400 block mb-0.5">Total Bonds</span>
-                            <span id="propBondCount" class="font-semibold text-xs text-indigo-300">-</span>
-                        </div>
-                        <div class="bg-white/5 border border-white/5 p-2.5 rounded-xl">
-                            <span class="text-[10px] text-gray-400 block mb-0.5">Classification</span>
-                            <span id="propClass" class="font-semibold text-xs code-font text-indigo-300">-</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Color Coding Legend -->
-                <div>
-                    <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3">Element Color Legend (CPK)</h3>
-                    <div class="grid grid-cols-2 gap-2 text-[11px] text-gray-300">
-                        <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-slate-100 border border-slate-300 inline-block shrink-0"></span> Hydrogen (H)</div>
-                        <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-neutral-800 inline-block shrink-0"></span> Carbon (C)</div>
-                        <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-blue-500 inline-block shrink-0"></span> Nitrogen (N)</div>
-                        <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-red-500 inline-block shrink-0"></span> Oxygen (O)</div>
-                        <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-amber-400 inline-block shrink-0"></span> Sulfur (S)</div>
-                        <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-orange-500 inline-block shrink-0"></span> Phosphorus (P)</div>
-                        <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-green-500 inline-block shrink-0"></span> Halogens</div>
-                        <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-purple-500 inline-block shrink-0"></span> Metals / Others</div>
-                    </div>
-                </div>
-
-            </div>
+        <div class="input-group">
+            <label for="formula-input">Formula / Ion</label>
+            <input type="text" id="formula-input" value="XeOF2" placeholder="e.g., XeOF2, SF6, SO4^2-, NH4+">
+            <div id="error-msg">Invalid Chemical Formula</div>
+            <button id="render-btn">Generate 3D Structure</button>
         </div>
 
-        <!-- Right Panel: 3D Scene Viewport Wrapper -->
-        <div id="canvas-wrapper" class="w-full flex-1 lg:col-span-8 flex flex-col h-full relative glassmorphism rounded-2xl overflow-hidden min-h-[0] lg:min-h-[350px]">
-            <div id="canvas-container" class="w-full h-full cursor-grab active:cursor-grabbing relative"></div>
-            
-            <div class="absolute top-3 left-3 pointer-events-auto flex flex-wrap gap-2 max-w-[calc(100%-24px)] z-20">
-                <button onclick="resetCamera()" class="p-2 rounded-lg bg-black/60 hover:bg-black/80 border border-white/10 text-[11px] flex items-center gap-1.5 transition duration-200">
-                    <i class="fa-solid fa-arrows-spin"></i> Reset View
-                </button>
-                <button id="rotationToggle" onclick="toggleRotation()" class="p-2 rounded-lg bg-black/60 hover:bg-black/80 border border-white/10 text-[11px] flex items-center gap-1.5 transition duration-200">
-                    <i class="fa-solid fa-rotate"></i> Auto-Spin: ON
-                </button>
-                <button onclick="toggleFullscreen()" class="p-2 rounded-lg bg-black/60 hover:bg-black/80 border border-white/10 text-[11px] flex items-center gap-1.5 transition duration-200" title="Toggle Fullscreen">
-                    <i id="fullscreenIcon" class="fa-solid fa-expand"></i>
-                </button>
-            </div>
-            
-            <div class="absolute bottom-3 left-3 right-3 sm:left-auto sm:right-3 bg-black/75 px-3 py-1.5 rounded-md border border-white/5 text-[10px] text-gray-400 text-center sm:text-left pointer-events-none z-20">
-                <i class="fa-solid fa-circle-info mr-1 text-indigo-400"></i> Touch/drag to spin. Pinch/scroll to zoom.
-            </div>
+        <div class="card">
+            <h3>Structural Analysis</h3>
+            <div class="info-row"><span>Formula:</span> <span class="info-value" id="res-formula">-</span></div>
+            <div class="info-row"><span>Central Atom:</span> <span class="info-value" id="res-central">-</span></div>
+            <div class="info-row"><span>Total Atoms:</span> <span class="info-value" id="res-total-atoms">-</span></div>
+            <div class="info-row"><span>Steric Number:</span> <span class="info-value" id="res-steric">-</span></div>
+            <div class="info-row"><span>Lone Pairs:</span> <span class="info-value" id="res-lone-pairs">-</span></div>
+            <div class="info-row"><span>Geometry:</span> <span class="info-value" id="res-geometry" style="color: #38bdf8;">-</span></div>
         </div>
 
-        <button onclick="toggleMobilePanel()" class="lg:hidden fixed bottom-16 right-4 z-50 p-4 bg-indigo-600 text-white rounded-full shadow-2xl shadow-indigo-600/50 flex items-center justify-center border border-indigo-400/20 active:scale-95 transition-transform" aria-label="Open controls panel">
-            <i class="fa-solid fa-sliders text-xl"></i>
-        </button>
+        <div class="card">
+            <h3>Element Legend</h3>
+            <div id="legend"></div>
+        </div>
+    </div>
 
-    </main>
+    <div id="canvas-container"></div>
 
-    <!-- Three.js Visualizer Engine -->
     <script>
-        function toggleMobilePanel() {
-            const panel = document.getElementById('sidebarPanel');
-            if (panel.classList.contains('hidden')) {
-                panel.classList.remove('hidden');
-                panel.classList.add('flex');
-            } else {
-                panel.classList.add('hidden');
-                panel.classList.remove('flex');
-            }
-        }
-
-        function autoCloseMobilePanel() {
-            if (window.innerWidth < 1024) {
-                toggleMobilePanel();
-            }
-        }
-
-        function toggleFullscreen() {
-            const container = document.getElementById('canvas-wrapper');
-            const icon = document.getElementById('fullscreenIcon');
-            
-            if (!document.fullscreenElement) {
-                container.requestFullscreen().then(() => {
-                    icon.className = "fa-solid fa-compress";
-                    setTimeout(onWindowResize, 100);
-                }).catch(err => {
-                    console.error(`Error enabling fullscreen: ${err.message}`);
-                });
-            } else {
-                document.exitFullscreen().then(() => {
-                    icon.className = "fa-solid fa-expand";
-                    setTimeout(onWindowResize, 100);
-                });
-            }
-        }
-
-        document.addEventListener('fullscreenchange', () => {
-            const icon = document.getElementById('fullscreenIcon');
-            if (!document.fullscreenElement) {
-                icon.className = "fa-solid fa-expand";
-            } else {
-                icon.className = "fa-solid fa-compress";
-            }
-            setTimeout(onWindowResize, 150);
-        });
-
-        function checkViewportSize() {
-            const banner = document.getElementById('responsive-banner');
-            const isDismissed = sessionStorage.getItem('bannerDismissed') === 'true';
-            
-            if (window.innerWidth < 768 && !isDismissed) {
-                banner.classList.remove('hidden');
-            } else {
-                banner.classList.add('hidden');
-            }
-
-            const panel = document.getElementById('sidebarPanel');
-            if (window.innerWidth >= 1024) {
-                panel.classList.remove('hidden');
-                panel.classList.add('flex');
-            } else if (!panel.classList.contains('bg-gray-950/95')) {
-                panel.classList.add('hidden');
-                panel.classList.remove('flex');
-            }
-            setTimeout(onWindowResize, 100);
-        }
-
-        function dismissBanner() {
-            const banner = document.getElementById('responsive-banner');
-            banner.classList.add('hidden');
-            sessionStorage.setItem('bannerDismissed', 'true');
-            setTimeout(onWindowResize, 100);
-        }
-
-        window.addEventListener('resize', checkViewportSize);
-        window.addEventListener('orientationchange', () => {
-            setTimeout(checkViewportSize, 200);
-        });
-
-        // Universal CPK Elemental Palette & Covalent Radii
-        const CPK_COLORS = {
-            'H': 0xFFFFFF, 'HE': 0xD9FFFF, 'LI': 0xCC80FF, 'BE': 0xC2FF00,
-            'B': 0xFFB5B5, 'C': 0x555555, 'N': 0x3050F8, 'O': 0xFF0D0D,
-            'F': 0x90E050, 'NE': 0xB3E3F5, 'NA': 0xAB5CF2, 'MG': 0x8AFF00,
-            'AL': 0xBFA6A6, 'SI': 0xF0C8A0, 'P': 0xFF8000, 'S': 0xFFFF30,
-            'CL': 0x1FF01F, 'AR': 0x80E1E1, 'K': 0x8F40D4, 'CA': 0x3DFF00,
-            'FE': 0xE06633, 'CU': 0xC88033, 'ZN': 0x7D80B0, 'BR': 0xA62929,
-            'I': 0x940094, 'XE': 0x429EB0, 'DEFAULT': 0xDD77DD
+        // ==========================================
+        // 1. PERIODIC TABLE DATA ENGINE (CPK + Valence)
+        // ==========================================
+        const PERIODIC_TABLE = {
+            H:  { name: 'Hydrogen',   valence: 1, en: 2.20, color: 0xFFFFFF, radius: 0.3 },
+            B:  { name: 'Boron',      valence: 3, en: 2.04, color: 0x00FF00, radius: 0.5 },
+            C:  { name: 'Carbon',     valence: 4, en: 2.55, color: 0x909090, radius: 0.5 },
+            N:  { name: 'Nitrogen',   valence: 5, en: 3.04, color: 0x3050F8, radius: 0.48 },
+            O:  { name: 'Oxygen',     valence: 6, en: 3.44, color: 0xFF0D0D, radius: 0.45 },
+            F:  { name: 'Fluorine',   valence: 7, en: 3.98, color: 0x90E050, radius: 0.42 },
+            P:  { name: 'Phosphorus', valence: 5, en: 2.19, color: 0xFF8000, radius: 0.55 },
+            S:  { name: 'Sulfur',     valence: 6, en: 2.58, color: 0xFFFF30, radius: 0.55 },
+            Cl: { name: 'Chlorine',   valence: 7, en: 3.16, color: 0x1FF01F, radius: 0.5 },
+            Br: { name: 'Bromine',    valence: 7, en: 2.96, color: 0xA62929, radius: 0.55 },
+            I:  { name: 'Iodine',     valence: 7, en: 2.66, color: 0x940094, radius: 0.6 },
+            Xe: { name: 'Xenon',      valence: 8, en: 2.60, color: 0x429EB0, radius: 0.65 },
+            Kr: { name: 'Krypton',    valence: 8, en: 3.00, color: 0x5CB8D1, radius: 0.62 },
+            Se: { name: 'Selenium',   valence: 6, en: 2.55, color: 0xFFE100, radius: 0.55 }
         };
 
-        const VALENCE_LIMITS = {
-            'H': 1, 'C': 4, 'N': 3, 'O': 2, 'F': 1, 'CL': 1, 'BR': 1, 'I': 1,
-            'S': 6, 'P': 5, 'B': 3, 'SI': 4, 'NA': 1, 'K': 1, 'CA': 2, 'MG': 2
+        // Fallback for elements missing in table
+        function getElementData(symbol) {
+            return PERIODIC_TABLE[symbol] || { name: symbol, valence: 4, en: 2.0, color: 0xDDDDDD, radius: 0.5 };
+        }
+
+        // ==========================================
+        // 2. FORMULA PARSER ENGINE
+        // ==========================================
+        function parseFormula(input) {
+            let formulaStr = input.trim();
+            let charge = 0;
+
+            // Extract Charge: e.g. SO4^2-, NH4+, NO3-
+            const chargeMatch = formulaStr.match(/[\^]?([+-]?\d*[+-])$/);
+            if (chargeMatch) {
+                const cStr = chargeMatch[1];
+                if (cStr === '+' || cStr === '1+') charge = 1;
+                else if (cStr === '-' || cStr === '1-') charge = -1;
+                else if (cStr.endsWith('+')) charge = parseInt(cStr);
+                else if (cStr.endsWith('-')) charge = -parseInt(cStr);
+                formulaStr = formulaStr.replace(chargeMatch[0], '');
+            }
+
+            // Extract Atoms
+            const regex = /([A-Z][a-z]?)(\d*)/g;
+            const atoms = {};
+            let match;
+            let totalAtomsCount = 0;
+
+            while ((match = regex.exec(formulaStr)) !== null) {
+                if (match[0] === '') break;
+                const elem = match[1];
+                const count = match[2] ? parseInt(match[2], 10) : 1;
+                atoms[elem] = (atoms[elem] || 0) + count;
+                totalAtomsCount += count;
+            }
+
+            if (Object.keys(atoms).length === 0) return null;
+
+            return { atoms, charge, totalAtomsCount, rawFormula: input };
+        }
+
+        // ==========================================
+        // 3. UNIVERSAL VSEPR CALCULATOR ENGINE
+        // ==========================================
+        function calculateVSEPR(parsed) {
+            const { atoms, charge } = parsed;
+            const elements = Object.keys(atoms);
+
+            // Determine Central Atom (Lowest EN, non-Hydrogen, or single unique atom)
+            let centralAtom = elements[0];
+            let minEN = 999;
+
+            for (const elem of elements) {
+                if (elem === 'H') continue;
+                // Unique single atom usually central
+                if (atoms[elem] === 1) {
+                    centralAtom = elem;
+                    break;
+                }
+                const data = getElementData(elem);
+                if (data.en < minEN) {
+                    minEN = data.en;
+                    centralAtom = elem;
+                }
+            }
+
+            const centralData = getElementData(centralAtom);
+            let centralValence = centralData.valence;
+
+            // Calculate bonding electrons used by outer atoms
+            let bondingElectrons = 0;
+            let outerAtomsList = [];
+
+            for (const [elem, count] of Object.entries(atoms)) {
+                let numToBind = (elem === centralAtom) ? count - 1 : count;
+                for (let i = 0; i < numToBind; i++) {
+                    outerAtomsList.push(elem);
+                    // O and S form double bonds (take 2 e-) unless constrained
+                    if ((elem === 'O' || elem === 'S') && centralValence >= 4) {
+                        bondingElectrons += 2;
+                    } else {
+                        bondingElectrons += 1; // Halogens, H form single bond (take 1 e-)
+                    }
+                }
+            }
+
+            // Calculate Lone Pairs
+            let remainingElectrons = centralValence - bondingElectrons - charge;
+            let lonePairs = Math.max(0, Math.floor(remainingElectrons / 2));
+
+            const bondedAtomsCount = outerAtomsList.length;
+            const stericNumber = bondedAtomsCount + lonePairs;
+
+            // Geometry Lookup Map (StericNumber - LonePairs)
+            const GEOMETRY_NAMES = {
+                "2-0": "Linear",
+                "3-0": "Trigonal Planar",
+                "3-1": "Bent / Angular",
+                "4-0": "Tetrahedral",
+                "4-1": "Trigonal Pyramidal",
+                "4-2": "Bent / Angular",
+                "5-0": "Trigonal Bipyramidal",
+                "5-1": "Seesaw",
+                "5-2": "T-Shaped",
+                "5-3": "Linear",
+                "6-0": "Octahedral",
+                "6-1": "Square Pyramidal",
+                "6-2": "Square Planar"
+            };
+
+            const shapeKey = `${stericNumber}-${lonePairs}`;
+            const geometryName = GEOMETRY_NAMES[shapeKey] || "Complex / Custom";
+
+            return {
+                centralAtom,
+                outerAtomsList,
+                stericNumber,
+                lonePairs,
+                geometryName,
+                shapeKey
+            };
+        }
+
+        // ==========================================
+        // 4. 3D VECTOR COORDINATE TEMPLATES
+        // ==========================================
+        const VSEPR_VECTOR_TEMPLATES = {
+            "2-0": [[0, 0, 1], [0, 0, -1]],
+            
+            "3-0": [[0, 1, 0], [0.866, -0.5, 0], [-0.866, -0.5, 0]],
+            "3-1": [[0.866, -0.3, 0], [-0.866, -0.3, 0]], // Bent
+            
+            "4-0": [[0, 1, 0], [0.943, -0.333, 0], [-0.471, -0.333, 0.816], [-0.471, -0.333, -0.816]],
+            "4-1": [[0.943, -0.333, 0], [-0.471, -0.333, 0.816], [-0.471, -0.333, -0.816]], // Trigonal Pyramidal
+            "4-2": [[0.943, -0.333, 0], [-0.471, -0.333, 0.816]], // Bent
+
+            // 5 Steric: Equatorial = (x,z), Axial = y
+            "5-0": [[0, 1, 0], [0, -1, 0], [1, 0, 0], [-0.5, 0, 0.866], [-0.5, 0, -0.866]],
+            "5-1": [[0, 1, 0], [0, -1, 0], [1, 0, 0], [-0.5, 0, 0.866]], // Seesaw
+            "5-2": [[1, 0, 0], [0, 1, 0], [0, -1, 0]], // T-Shaped (XeOF2: Oxygen Equatorial, 2 Fluorines Axial)
+            "5-3": [[0, 1, 0], [0, -1, 0]], // Linear
+
+            "6-0": [[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [0, 0, 1], [0, 0, -1]],
+            "6-1": [[0, -1, 0], [1, 0, 0], [-1, 0, 0], [0, 0, 1], [0, 0, -1]], // Square Pyramidal
+            "6-2": [[1, 0, 0], [-1, 0, 0], [0, 0, 1], [0, 0, -1]] // Square Planar
         };
 
-        function getElementColor(symbol) {
-            const sym = symbol.toUpperCase();
-            return CPK_COLORS[sym] || CPK_COLORS['DEFAULT'];
-        }
+        // ==========================================
+        // 5. THREE.JS 3D SCENE RENDERER
+        // ==========================================
+        const container = document.getElementById('canvas-container');
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x0b0f19);
 
-        function clearFormula() {
-            document.getElementById('formulaInput').value = '';
-            hideError();
-        }
+        const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 1000);
+        camera.position.set(0, 0, 8);
 
-        function showError(message) {
-            const errorBox = document.getElementById('errorBox');
-            const errorMessage = document.getElementById('errorMessage');
-            errorMessage.innerText = message;
-            errorBox.classList.remove('hidden');
-        }
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(container.clientWidth, container.clientHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        container.appendChild(renderer.domElement);
 
-        function hideError() {
-            document.getElementById('errorBox').classList.add('hidden');
-        }
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
 
-        function showLoading(show) {
-            const loader = document.getElementById('loadingStatus');
-            if (show) loader.classList.remove('hidden');
-            else loader.classList.add('hidden');
-        }
+        // Lighting
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+        scene.add(ambientLight);
+        const dirLight1 = new THREE.DirectionalLight(0xffffff, 0.8);
+        dirLight1.position.set(5, 10, 7);
+        scene.add(dirLight1);
+        const dirLight2 = new THREE.DirectionalLight(0x38bdf8, 0.3);
+        dirLight2.position.set(-5, -5, -5);
+        scene.add(dirLight2);
 
-        let scene, camera, renderer, labelRenderer, controls, compoundGroup;
-        let autoSpin = true;
+        let moleculeGroup = new THREE.Group();
+        scene.add(moleculeGroup);
 
-        function init3D() {
-            const container = document.getElementById('canvas-container');
-            const width = container.clientWidth;
-            const height = container.clientHeight;
-
-            scene = new THREE.Scene();
-            scene.fog = new THREE.FogExp2(0x030712, 0.012);
-
-            camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 100);
-            camera.position.set(0, 5, 12);
-
-            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-            renderer.setSize(width, height);
-            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-            renderer.shadowMap.enabled = true;
-            container.appendChild(renderer.domElement);
-
-            labelRenderer = new THREE.CSS2DRenderer();
-            labelRenderer.setSize(width, height);
-            labelRenderer.domElement.style.position = 'absolute';
-            labelRenderer.domElement.style.top = '0px';
-            labelRenderer.domElement.style.pointerEvents = 'none';
-            container.appendChild(labelRenderer.domElement);
-
-            controls = new THREE.OrbitControls(camera, renderer.domElement);
-            controls.enableDamping = true;
-            controls.dampingFactor = 0.05;
-            controls.maxDistance = 45;
-            controls.minDistance = 2;
-
-            const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
-            scene.add(ambientLight);
-
-            const dirLight1 = new THREE.DirectionalLight(0xffffff, 0.8);
-            dirLight1.position.set(10, 15, 10);
-            scene.add(dirLight1);
-
-            const dirLight2 = new THREE.DirectionalLight(0x6366f1, 0.4);
-            dirLight2.position.set(-10, -10, -10);
-            scene.add(dirLight2);
-
-            compoundGroup = new THREE.Group();
-            scene.add(compoundGroup);
-
-            window.addEventListener('resize', onWindowResize);
-            animate();
-        }
-
-        function animate() {
-            requestAnimationFrame(animate);
-            if (autoSpin && compoundGroup) {
-                compoundGroup.rotation.y += 0.005;
-                compoundGroup.rotation.x += 0.002;
+        function renderMolecule3D(parsed, vsepr) {
+            // Clear Scene
+            while(moleculeGroup.children.length > 0){ 
+                const obj = moleculeGroup.children[0];
+                moleculeGroup.remove(obj); 
             }
-            controls.update();
-            renderer.render(scene, camera);
-            labelRenderer.render(scene, camera);
+
+            const BOND_DISTANCE = 2.2;
+
+            // 1. Render Central Atom at Origin (0,0,0)
+            const centralData = getElementData(vsepr.centralAtom);
+            const centralGeo = new THREE.SphereGeometry(centralData.radius, 32, 32);
+            const centralMat = new THREE.MeshStandardMaterial({ color: centralData.color, roughness: 0.2, metalness: 0.1 });
+            const centralMesh = new THREE.Mesh(centralGeo, centralMat);
+            moleculeGroup.add(centralMesh);
+
+            // 2. Fetch Vectors for Geometry
+            const template = VSEPR_VECTOR_TEMPLATES[vsepr.shapeKey] || VSEPR_VECTOR_TEMPLATES["2-0"];
+
+            // 3. Render Outer Atoms & Bonds
+            vsepr.outerAtomsList.forEach((elemSymbol, index) => {
+                const vec = template[index] || [Math.random(), Math.random(), Math.random()];
+                const dir = new THREE.Vector3(...vec).normalize();
+                const atomPos = dir.clone().multiplyScalar(BOND_DISTANCE);
+
+                // Render Outer Atom Sphere
+                const atomData = getElementData(elemSymbol);
+                const atomGeo = new THREE.SphereGeometry(atomData.radius, 32, 32);
+                const atomMat = new THREE.MeshStandardMaterial({ color: atomData.color, roughness: 0.2 });
+                const atomMesh = new THREE.Mesh(atomGeo, atomMat);
+                atomMesh.position.copy(atomPos);
+                moleculeGroup.add(atomMesh);
+
+                // Render Bond Cylinder
+                const bondGeo = new THREE.CylinderGeometry(0.08, 0.08, BOND_DISTANCE, 16);
+                const bondMat = new THREE.MeshStandardMaterial({ color: 0xcccccc, roughness: 0.5 });
+                const bondMesh = new THREE.Mesh(bondGeo, bondMat);
+
+                // Align cylinder with vectors
+                const midPoint = new THREE.Vector3().addVectors(new THREE.Vector3(0,0,0), atomPos).multiplyScalar(0.5);
+                bondMesh.position.copy(midPoint);
+                bondMesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir);
+                moleculeGroup.add(bondMesh);
+            });
         }
 
-        function onWindowResize() {
-            const container = document.getElementById('canvas-container');
-            if (!container || !renderer) return;
+        // ==========================================
+        // 6. UI CONTROLLER & EVENT LISTENERS
+        // ==========================================
+        function processAndRender() {
+            const input = document.getElementById('formula-input').value;
+            const errorMsg = document.getElementById('error-msg');
+            const parsed = parseFormula(input);
+
+            if (!parsed) {
+                errorMsg.style.display = 'block';
+                return;
+            }
+            errorMsg.style.display = 'none';
+
+            const vsepr = calculateVSEPR(parsed);
+
+            // Update UI Sidebar Info
+            document.getElementById('res-formula').innerText = parsed.rawFormula;
+            document.getElementById('res-central').innerText = vsepr.centralAtom;
+            document.getElementById('res-total-atoms').innerText = parsed.totalAtomsCount;
+            document.getElementById('res-steric').innerText = vsepr.stericNumber;
+            document.getElementById('res-lone-pairs').innerText = vsepr.lonePairs;
+            document.getElementById('res-geometry').innerText = vsepr.geometryName;
+
+            // Render Legend
+            const legendContainer = document.getElementById('legend');
+            legendContainer.innerHTML = '';
+            const uniqueElements = Array.from(new Set([vsepr.centralAtom, ...vsepr.outerAtomsList]));
             
+            uniqueElements.forEach(elem => {
+                const data = getElementData(elem);
+                const hexColor = '#' + data.color.toString(16).padStart(6, '0');
+                const item = document.createElement('div');
+                item.className = 'legend-item';
+                item.innerHTML = `<div class="color-dot" style="background-color: ${hexColor}"></div> ${elem} (${data.name})`;
+                legendContainer.appendChild(item);
+            });
+
+            // Render 3D Scene
+            renderMolecule3D(parsed, vsepr);
+        }
+
+        document.getElementById('render-btn').addEventListener('click', processAndRender);
+        document.getElementById('formula-input').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') processAndRender();
+        });
+
+        window.addEventListener('resize', () => {
             camera.aspect = container.clientWidth / container.clientHeight;
             camera.updateProjectionMatrix();
             renderer.setSize(container.clientWidth, container.clientHeight);
-            labelRenderer.setSize(container.clientWidth, container.clientHeight);
-        }
-
-        function toggleRotation() {
-            autoSpin = !autoSpin;
-            document.getElementById('rotationToggle').innerHTML = autoSpin ? 
-                '<i class="fa-solid fa-rotate"></i> Auto-Spin: ON' : 
-                '<i class="fa-solid fa-rotate"></i> Auto-Spin: OFF';
-        }
-
-        function resetCamera() {
-            camera.position.set(0, 5, 12);
-            controls.target.set(0, 0, 0);
-            if (compoundGroup) {
-                compoundGroup.rotation.set(0, 0, 0);
-            }
-        }
-
-        // UNIVERSAL MOLECULAR ENGINE: PubChem API Resolver + Fallback Force Graph Engine
-        async function fetchMolecularStructure(query) {
-            let cleanQuery = query.trim();
-            
-            try {
-                // Query PubChem Compound Database for 3D/SDF metadata
-                const cidRes = await fetch(`https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/${encodeURIComponent(cleanQuery)}/cids/JSON`);
-                if (!cidRes.ok) throw new Error("API lookup failed, switching to force graph algorithm.");
-                
-                const cidData = await cidRes.json();
-                const cid = cidData.IdentifierList.CID[0];
-
-                const sdfRes = await fetch(`https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/${cid}/SDF?record_type=3d`);
-                let sdfText = "";
-                if (sdfRes.ok) {
-                    sdfText = await sdfRes.text();
-                } else {
-                    const sdf2dRes = await fetch(`https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/${cid}/SDF?record_type=2d`);
-                    if (sdf2dRes.ok) sdfText = await sdf2dRes.text();
-                }
-
-                if (sdfText) {
-                    return parseSDF(sdfText, cleanQuery);
-                }
-            } catch (err) {
-                console.warn("Universal API query fallback:", err);
-            }
-
-            // Fallback Engine: Synthetic Molecular Graph Generator
-            return generateSyntheticStructure(cleanQuery);
-        }
-
-        function parseSDF(sdf, name) {
-            const lines = sdf.split('\n');
-            if (lines.length < 5) return null;
-
-            let countsLine = lines[3];
-            let atomCount = parseInt(countsLine.substring(0, 3).trim());
-            let bondCount = parseInt(countsLine.substring(3, 6).trim());
-
-            if (isNaN(atomCount) || atomCount <= 0) return null;
-
-            const atoms = [];
-            const bonds = [];
-
-            for (let i = 4; i < 4 + atomCount; i++) {
-                const l = lines[i];
-                const x = parseFloat(l.substring(0, 10).trim());
-                const y = parseFloat(l.substring(10, 20).trim());
-                const z = parseFloat(l.substring(20, 30).trim());
-                const symbol = l.substring(31, 34).trim();
-
-                atoms.push({ id: i - 4, symbol, x, y, z });
-            }
-
-            for (let i = 4 + atomCount; i < 4 + atomCount + bondCount; i++) {
-                const l = lines[i];
-                const source = parseInt(l.substring(0, 3).trim()) - 1;
-                const target = parseInt(l.substring(3, 6).trim()) - 1;
-                const order = parseInt(l.substring(6, 9).trim()) || 1;
-
-                bonds.push({ source, target, order });
-            }
-
-            return { name, atoms, bonds, source: 'PubChem Universal Engine' };
-        }
-
-        function generateSyntheticStructure(formula) {
-            const pattern = /([A-Z][a-z]?)(\d*)/g;
-            let match;
-            const parsedAtoms = [];
-            
-            let workingFormula = formula.replace(/[\+\-\d]+$/g, '');
-
-            while ((match = pattern.exec(workingFormula)) !== null) {
-                const symbol = match[1];
-                const count = match[2] ? parseInt(match[2]) : 1;
-                for (let i = 0; i < count; i++) {
-                    parsedAtoms.push(symbol);
-                }
-            }
-
-            if (parsedAtoms.length === 0) {
-                return { error: "Could not parse chemical formula format." };
-            }
-
-            // Initialize atoms with random 3D position vector
-            const atoms = parsedAtoms.map((symbol, idx) => ({
-                id: idx,
-                symbol,
-                x: (Math.random() - 0.5) * 4,
-                y: (Math.random() - 0.5) * 4,
-                z: (Math.random() - 0.5) * 4
-            }));
-
-            // Build bonds dynamically using valence limits & distance heuristic
-            const bonds = [];
-            const valenceCount = new Array(atoms.length).fill(0);
-
-            for (let i = 0; i < atoms.length; i++) {
-                for (let j = i + 1; j < atoms.length; j++) {
-                    const maxI = VALENCE_LIMITS[atoms[i].symbol.toUpperCase()] || 4;
-                    const maxJ = VALENCE_LIMITS[atoms[j].symbol.toUpperCase()] || 4;
-
-                    if (valenceCount[i] < maxI && valenceCount[j] < maxJ) {
-                        bonds.push({ source: i, target: j, order: 1 });
-                        valenceCount[i]++;
-                        valenceCount[j]++;
-                    }
-                }
-            }
-
-            // 3D Force-Directed Layout Simulation (Coulomb Repulsion + Hooke Spring Law)
-            const iterations = 100;
-            const k = 1.8; // Ideal distance
-            
-            for (let iter = 0; iter < iterations; iter++) {
-                // Repulsion
-                for (let i = 0; i < atoms.length; i++) {
-                    for (let j = i + 1; j < atoms.length; j++) {
-                        let dx = atoms[j].x - atoms[i].x;
-                        let dy = atoms[j].y - atoms[i].y;
-                        let dz = atoms[j].z - atoms[i].z;
-                        let dist = Math.sqrt(dx * dx + dy * dy + dz * dz) + 0.01;
-                        let force = (k * k) / dist;
-                        
-                        let fx = (dx / dist) * force * 0.1;
-                        let fy = (dy / dist) * force * 0.1;
-                        let fz = (dz / dist) * force * 0.1;
-
-                        atoms[i].x -= fx; atoms[i].y -= fy; atoms[i].z -= fz;
-                        atoms[j].x += fx; atoms[j].y += fy; atoms[j].z += fz;
-                    }
-                }
-
-                // Spring attraction across bonds
-                for (let bond of bonds) {
-                    let a1 = atoms[bond.source];
-                    let a2 = atoms[bond.target];
-                    let dx = a2.x - a1.x;
-                    let dy = a2.y - a1.y;
-                    let dz = a2.z - a1.z;
-                    let dist = Math.sqrt(dx * dx + dy * dy + dz * dz) + 0.01;
-                    let force = (dist - k) * 0.2;
-
-                    let fx = (dx / dist) * force;
-                    let fy = (dy / dist) * force;
-                    let fz = (dz / dist) * force;
-
-                    a1.x += fx; a1.y += fy; a1.z += fz;
-                    a2.x -= fx; a2.y -= fy; a2.z -= fz;
-                }
-            }
-
-            return { name: formula.toUpperCase(), atoms, bonds, source: 'Synthetic Engine' };
-        }
-
-        function createAtomLabel(text, position) {
-            const div = document.createElement('div');
-            div.className = 'atom-label';
-            div.textContent = text;
-            const label = new THREE.CSS2DObject(div);
-            label.position.copy(position);
-            return label;
-        }
-
-        function clearSceneAndLabels() {
-            while (compoundGroup.children.length > 0) {
-                const obj = compoundGroup.children[0];
-                compoundGroup.remove(obj);
-            }
-            const labelContainer = labelRenderer.domElement;
-            while (labelContainer.firstChild) {
-                labelContainer.removeChild(labelContainer.firstChild);
-            }
-        }
-
-        function render3DStructure(data) {
-            clearSceneAndLabels();
-
-            const { atoms, bonds } = data;
-
-            // Center structure
-            let cx = 0, cy = 0, cz = 0;
-            atoms.forEach(a => { cx += a.x; cy += a.y; cz += a.z; });
-            cx /= atoms.length; cy /= atoms.length; cz /= atoms.length;
-
-            const atomMeshes = [];
-
-            // Render Atoms
-            atoms.forEach(atom => {
-                const pos = new THREE.Vector3(atom.x - cx, atom.y - cy, atom.z - cz);
-                const color = getElementColor(atom.symbol);
-                const radius = atom.symbol.toUpperCase() === 'H' ? 0.45 : 0.75;
-
-                const geom = new THREE.SphereGeometry(radius, 32, 32);
-                const mat = new THREE.MeshPhongMaterial({ color: color, shininess: 80 });
-                const mesh = new THREE.Mesh(geom, mat);
-                mesh.position.copy(pos);
-
-                const label = createAtomLabel(atom.symbol, new THREE.Vector3(0, radius + 0.35, 0));
-                mesh.add(label);
-
-                compoundGroup.add(mesh);
-                atomMeshes.push(pos);
-            });
-
-            // Render Bonds
-            bonds.forEach(bond => {
-                const p1 = atomMeshes[bond.source];
-                const p2 = atomMeshes[bond.target];
-
-                if (!p1 || !p2) return;
-
-                const distance = p1.distanceTo(p2);
-                const midPoint = new THREE.Vector3().addVectors(p1, p2).multiplyScalar(0.5);
-
-                const bondOrder = bond.order || 1;
-                const offsetStep = 0.18;
-
-                for (let o = 0; o < bondOrder; o++) {
-                    const bondGeom = new THREE.CylinderGeometry(0.1, 0.1, distance, 16);
-                    const bondMat = new THREE.MeshPhongMaterial({ color: 0xcccccc, shininess: 40 });
-                    const bondMesh = new THREE.Mesh(bondGeom, bondMat);
-
-                    let pos = midPoint.clone();
-                    if (bondOrder > 1) {
-                        const shift = (o - (bondOrder - 1) / 2) * offsetStep;
-                        pos.x += shift;
-                    }
-
-                    bondMesh.position.copy(pos);
-                    const direction = new THREE.Vector3().subVectors(p2, p1).normalize();
-                    const alignAxis = new THREE.Vector3(0, 1, 0);
-                    bondMesh.quaternion.setFromUnitVectors(alignAxis, direction);
-
-                    compoundGroup.add(bondMesh);
-                }
-            });
-        }
-
-        function updateDashboard(data) {
-            document.getElementById('propName').innerText = data.name;
-            document.getElementById('propAtomCount').innerText = `${data.atoms.length} Atoms`;
-            document.getElementById('propBondCount').innerText = `${data.bonds.length} Bonds`;
-            
-            let classification = "Polyatomic Molecule";
-            if (data.atoms.length === 1) classification = "Monoatomic";
-            else if (data.atoms.length === 2) classification = "Diatomic";
-            else if (data.atoms.length === 3) classification = "Triatomic";
-            else if (data.name.includes('+') || data.name.includes('-')) classification = "Polyatomic Ion";
-
-            document.getElementById('propClass').innerText = classification;
-        }
-
-        async function visualizeInput() {
-            const rawFormula = document.getElementById('formulaInput').value.trim();
-            if (!rawFormula) return;
-
-            hideError();
-            showLoading(true);
-
-            const result = await fetchMolecularStructure(rawFormula);
-            showLoading(false);
-
-            if (!result || result.error) {
-                showError(result ? result.error : "Failed to parse structure.");
-                return;
-            }
-
-            render3DStructure(result);
-            updateDashboard(result);
-        }
-
-        document.getElementById('formulaInput').addEventListener('keypress', function (e) {
-            if (e.key === 'Enter') {
-                visualizeInput();
-                autoCloseMobilePanel();
-            }
         });
 
-        window.onload = () => {
-            const introLoader = document.getElementById('intro-loader');
-            const introVideo = document.getElementById('intro-video');
-            
-            function handleIntroEnd() {
-                if (introLoader) {
-                    introLoader.classList.add('exit-animate');
-                    setTimeout(() => {
-                        introLoader.remove();
-                    }, 1100);
-                }
-            }
+        // Initialize First Render
+        processAndRender();
 
-            if (introVideo) {
-                introVideo.addEventListener('ended', handleIntroEnd);
-                introVideo.addEventListener('error', handleIntroEnd);
-                setTimeout(() => {
-                    if (document.getElementById('intro-loader')) handleIntroEnd();
-                }, 6000);
-            }
-
-            checkViewportSize();
-            init3D();
-            document.getElementById('formulaInput').value = 'C6H6';
-            visualizeInput();
-        };
+        // Animation Loop
+        function animate() {
+            requestAnimationFrame(animate);
+            moleculeGroup.rotation.y += 0.005; // Auto-rotate
+            controls.update();
+            renderer.render(scene, camera);
+        }
+        animate();
     </script>
 </body>
 </html>
