@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ECLIPSE7 | 3D Molecular Bonding Visualizer</title>
+    <title>ECLIPSE7 | Universal 3D Molecular Bonding Visualizer</title>
     <!-- Browser Tab Icon (Favicon) -->
     <link rel="icon" type="image/x-icon" href="logo.ico">
     <!-- Tailwind CSS -->
@@ -76,7 +76,7 @@
         ::-webkit-scrollbar-thumb:hover {
             background: rgba(255,255,255,0.25);
         }
-        /* Fullscreen pseudo adjustments */
+
         :-webkit-full-screen #canvas-wrapper {
             width: 100% !important;
             height: 100% !important;
@@ -88,7 +88,6 @@
             border-radius: 0px !important;
         }
 
-        /* Modern Cinematic Slide & Scale Intro Animation */
         #intro-loader {
             transition: transform 1.1s cubic-bezier(0.85, 0, 0.15, 1), 
                         opacity 0.9s cubic-bezier(0.25, 1, 0.5, 1), 
@@ -100,7 +99,6 @@
             opacity: 0;
             visibility: hidden;
         }
-        /* Fluid Responsive Video Fit Container */
         .video-container {
             position: relative;
             width: 100vw;
@@ -155,7 +153,7 @@
                     <span class="text-[10px] lg:text-xs text-gray-400 font-medium hidden sm:inline">by Prasad Reddy</span>
                     <i class="fa-solid fa-circle-check text-blue-500 text-[10px] lg:text-xs shadow-sm" title="Verified Creator"></i>
                 </div>
-                <p class="text-[10px] lg:text-[11px] text-indigo-400 font-medium">3D Molecular Geometry Visualizer</p>
+                <p class="text-[10px] lg:text-[11px] text-indigo-400 font-medium">Universal 3D Molecular Engine</p>
             </div>
         </div>
         <div class="flex items-center space-x-2">
@@ -168,10 +166,9 @@
     <!-- Main Workspace -->
     <main class="flex-1 relative flex flex-col lg:grid lg:grid-cols-12 gap-4 lg:gap-6 p-4 lg:p-6 overflow-hidden h-[calc(100vh-65px)] lg:h-[calc(100vh-73px)]">
         
-        <!-- Sidebar Panel Container (Responsive Drawer on Mobile) -->
+        <!-- Sidebar Panel Container -->
         <div id="sidebarPanel" class="hidden lg:flex fixed inset-0 top-0 lg:top-[73px] z-[60] lg:static lg:z-0 lg:col-span-4 flex-col gap-4 bg-gray-950/95 lg:bg-transparent p-4 lg:p-0 overflow-y-auto pr-1 transition-all duration-300">
             
-            <!-- Mobile Drawer Header Close Control -->
             <div class="flex lg:hidden justify-between items-center pb-2 border-b border-white/10 mb-2">
                 <span class="text-sm font-bold text-gray-200 tracking-wide">Visualizer Dashboard</span>
                 <button onclick="toggleMobilePanel()" class="text-gray-400 hover:text-white p-2">
@@ -182,14 +179,18 @@
             <!-- Compound Input Panel -->
             <div class="glassmorphism rounded-2xl p-4 lg:p-5 flex flex-col gap-4">
                 <h2 class="text-xs font-semibold text-gray-400 uppercase tracking-wider flex items-center gap-2">
-                    <i class="fa-solid fa-keyboard text-indigo-400"></i> Type Compound / Ion Formula
+                    <i class="fa-solid fa-keyboard text-indigo-400"></i> Any Formula / Ion / Molecule
                 </h2>
                 <div class="relative">
-                    <input type="text" id="formulaInput" placeholder="Enter SF6, NO2 -, I3-, O3, NaCl..." 
-                        class="w-full text-xl lg:text-2xl font-bold tracking-wider py-3 px-4 rounded-xl glass-input text-white text-center">
+                    <input type="text" id="formulaInput" placeholder="e.g. C6H12O6, CH3COOH, H2SO4, SF6, He, NO3-, NaCl..." 
+                        class="w-full text-lg lg:text-xl font-bold tracking-wider py-3 px-4 rounded-xl glass-input text-white text-center">
                 </div>
                 
-                <!-- Chemical Error Output Warning -->
+                <div id="loadingStatus" class="hidden bg-indigo-500/10 border border-indigo-500/30 rounded-xl p-3 text-xs text-indigo-300 flex items-center gap-2">
+                    <i class="fa-solid fa-spinner fa-spin text-indigo-400"></i>
+                    <span>Resolving molecular structure...</span>
+                </div>
+
                 <div id="errorBox" class="hidden bg-red-500/10 border border-red-500/30 rounded-xl p-3 text-xs text-red-400 flex items-start gap-2">
                     <i class="fa-solid fa-triangle-exclamation mt-0.5"></i>
                     <span id="errorMessage">Invalid Compound.</span>
@@ -212,46 +213,38 @@
                         <i class="fa-solid fa-chart-simple text-indigo-400"></i> Structural Analysis
                     </h2>
                     
-                    <!-- Structural Stats Dynamic Grid -->
                     <div class="grid grid-cols-2 gap-2.5 mb-2">
                         <div class="bg-white/5 border border-white/5 p-2.5 rounded-xl">
-                            <span class="text-[10px] text-gray-400 block mb-0.5">Compound/Ion Name</span>
+                            <span class="text-[10px] text-gray-400 block mb-0.5">Name / Identifier</span>
                             <span id="propName" class="font-semibold text-xs text-indigo-300">-</span>
                         </div>
                         <div class="bg-white/5 border border-white/5 p-2.5 rounded-xl">
-                            <span class="text-[10px] text-gray-400 block mb-0.5">Electron Geometry</span>
-                            <span id="propElectronGeom" class="font-semibold text-xs text-indigo-300">-</span>
+                            <span class="text-[10px] text-gray-400 block mb-0.5">Total Atoms</span>
+                            <span id="propAtomCount" class="font-semibold text-xs text-indigo-300">-</span>
                         </div>
                         <div class="bg-white/5 border border-white/5 p-2.5 rounded-xl">
-                            <span class="text-[10px] text-gray-400 block mb-0.5">Molecular Geometry</span>
-                            <span id="propMolecularGeom" class="font-semibold text-xs text-indigo-300">-</span>
+                            <span class="text-[10px] text-gray-400 block mb-0.5">Total Bonds</span>
+                            <span id="propBondCount" class="font-semibold text-xs text-indigo-300">-</span>
                         </div>
                         <div class="bg-white/5 border border-white/5 p-2.5 rounded-xl">
-                            <span class="text-[10px] text-gray-400 block mb-0.5">Hybridization</span>
-                            <span id="propHybrid" class="font-semibold text-xs code-font text-indigo-300">-</span>
-                        </div>
-                        <div class="bg-white/5 border border-white/5 p-2.5 rounded-xl">
-                            <span class="text-[10px] text-gray-400 block mb-0.5">Bonding Pairs</span>
-                            <span id="propBonds" class="font-semibold text-xs text-indigo-300">-</span>
-                        </div>
-                        <div class="bg-white/5 border border-white/5 p-2.5 rounded-xl">
-                            <span class="text-[10px] text-gray-400 block mb-0.5">Lone Pair</span>
-                            <span id="propLone" class="font-semibold text-xs text-indigo-300">-</span>
+                            <span class="text-[10px] text-gray-400 block mb-0.5">Classification</span>
+                            <span id="propClass" class="font-semibold text-xs code-font text-indigo-300">-</span>
                         </div>
                     </div>
                 </div>
 
                 <!-- Color Coding Legend -->
                 <div>
-                    <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3">Color Legend</h3>
+                    <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3">Element Color Legend (CPK)</h3>
                     <div class="grid grid-cols-2 gap-2 text-[11px] text-gray-300">
-                        <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-red-500 inline-block shrink-0"></span> Oxygen (O)</div>
                         <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-slate-100 border border-slate-300 inline-block shrink-0"></span> Hydrogen (H)</div>
                         <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-neutral-800 inline-block shrink-0"></span> Carbon (C)</div>
                         <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-blue-500 inline-block shrink-0"></span> Nitrogen (N)</div>
-                        <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-green-500 inline-block shrink-0"></span> Halogens</div>
+                        <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-red-500 inline-block shrink-0"></span> Oxygen (O)</div>
                         <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-amber-400 inline-block shrink-0"></span> Sulfur (S)</div>
-                        <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-fuchsia-500 opacity-60 inline-block shrink-0"></span> Lone Pair</div>
+                        <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-orange-500 inline-block shrink-0"></span> Phosphorus (P)</div>
+                        <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-green-500 inline-block shrink-0"></span> Halogens</div>
+                        <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-purple-500 inline-block shrink-0"></span> Metals / Others</div>
                     </div>
                 </div>
 
@@ -262,7 +255,6 @@
         <div id="canvas-wrapper" class="w-full flex-1 lg:col-span-8 flex flex-col h-full relative glassmorphism rounded-2xl overflow-hidden min-h-[0] lg:min-h-[350px]">
             <div id="canvas-container" class="w-full h-full cursor-grab active:cursor-grabbing relative"></div>
             
-            <!-- Controls Overlay -->
             <div class="absolute top-3 left-3 pointer-events-auto flex flex-wrap gap-2 max-w-[calc(100%-24px)] z-20">
                 <button onclick="resetCamera()" class="p-2 rounded-lg bg-black/60 hover:bg-black/80 border border-white/10 text-[11px] flex items-center gap-1.5 transition duration-200">
                     <i class="fa-solid fa-arrows-spin"></i> Reset View
@@ -270,7 +262,6 @@
                 <button id="rotationToggle" onclick="toggleRotation()" class="p-2 rounded-lg bg-black/60 hover:bg-black/80 border border-white/10 text-[11px] flex items-center gap-1.5 transition duration-200">
                     <i class="fa-solid fa-rotate"></i> Auto-Spin: ON
                 </button>
-                <!-- Full Screen Toggle Button -->
                 <button onclick="toggleFullscreen()" class="p-2 rounded-lg bg-black/60 hover:bg-black/80 border border-white/10 text-[11px] flex items-center gap-1.5 transition duration-200" title="Toggle Fullscreen">
                     <i id="fullscreenIcon" class="fa-solid fa-expand"></i>
                 </button>
@@ -281,7 +272,6 @@
             </div>
         </div>
 
-        <!-- Persistent Floating Action Button (FAB) for Controls Panel on Mobile Viewports -->
         <button onclick="toggleMobilePanel()" class="lg:hidden fixed bottom-16 right-4 z-50 p-4 bg-indigo-600 text-white rounded-full shadow-2xl shadow-indigo-600/50 flex items-center justify-center border border-indigo-400/20 active:scale-95 transition-transform" aria-label="Open controls panel">
             <i class="fa-solid fa-sliders text-xl"></i>
         </button>
@@ -290,7 +280,6 @@
 
     <!-- Three.js Visualizer Engine -->
     <script>
-        // Mobile Navigation Viewport Toggle State
         function toggleMobilePanel() {
             const panel = document.getElementById('sidebarPanel');
             if (panel.classList.contains('hidden')) {
@@ -308,7 +297,6 @@
             }
         }
 
-        // Fullscreen Interface Engine API Wrapper
         function toggleFullscreen() {
             const container = document.getElementById('canvas-wrapper');
             const icon = document.getElementById('fullscreenIcon');
@@ -328,7 +316,6 @@
             }
         }
 
-        // Listen for internal escape keys or system changes to clean up fullscreen configurations
         document.addEventListener('fullscreenchange', () => {
             const icon = document.getElementById('fullscreenIcon');
             if (!document.fullscreenElement) {
@@ -339,7 +326,6 @@
             setTimeout(onWindowResize, 150);
         });
 
-        // Responsive Viewport Logic
         function checkViewportSize() {
             const banner = document.getElementById('responsive-banner');
             const isDismissed = sessionStorage.getItem('bannerDismissed') === 'true';
@@ -350,7 +336,6 @@
                 banner.classList.add('hidden');
             }
 
-            // Sync structural panels safely if screen boundary crosses layout triggers
             const panel = document.getElementById('sidebarPanel');
             if (window.innerWidth >= 1024) {
                 panel.classList.remove('hidden');
@@ -374,61 +359,26 @@
             setTimeout(checkViewportSize, 200);
         });
 
-        // Complete Periodic Table Database (s, p, and d blocks)
-        const PERIODIC_TABLE = {
-            'H':  { name: 'Hydrogen', valence: 1, maxBonds: 1, color: 0xFFFFFF },
-            'HE': { name: 'Helium', valence: 2, maxBonds: 0, color: 0xD9FFFF },
-            'LI': { name: 'Lithium', valence: 1, maxBonds: 1, color: 0xCC80FF },
-            'BE': { name: 'Beryllium', valence: 2, maxBonds: 2, color: 0xC2FF00 },
-            'B':  { name: 'Boron', valence: 3, maxBonds: 3, color: 0xFFB5B5 },
-            'C':  { name: 'Carbon', valence: 4, maxBonds: 4, color: 0x555555 },
-            'N':  { name: 'Nitrogen', valence: 5, maxBonds: 4, color: 0x3050F8 },
-            'O':  { name: 'Oxygen', valence: 6, maxBonds: 2, color: 0xFF0D0D },
-            'F':  { name: 'Fluorine', valence: 7, maxBonds: 1, color: 0x90E050 },
-            'NE': { name: 'Neon', valence: 8, maxBonds: 0, color: 0xB3E3F5 },
-            'NA': { name: 'Sodium', valence: 1, maxBonds: 1, color: 0xAB5CF2 },
-            'MG': { name: 'Magnesium', valence: 2, maxBonds: 2, color: 0x8AFF00 },
-            'AL': { name: 'Aluminum', valence: 3, maxBonds: 3, color: 0xBFA6A6 },
-            'SI': { name: 'Silicon', valence: 4, maxBonds: 4, color: 0xF0C8A0 },
-            'P':  { name: 'Phosphorus', valence: 5, maxBonds: 5, color: 0xFF8000 },
-            'S':  { name: 'Sulfur', valence: 6, maxBonds: 6, color: 0xFFFF30 },
-            'CL': { name: 'Chlorine', valence: 7, maxBonds: 1, color: 0x1FF01F },
-            'AR': { name: 'Argon', valence: 8, maxBonds: 0, color: 0x80E1E1 },
-            'K':  { name: 'Potassium', valence: 1, maxBonds: 1, color: 0x8F40D4 },
-            'CA': { name: 'Calcium', valence: 2, maxBonds: 2, color: 0x3DFF00 },
-            'SC': { name: 'Scandium', valence: 3, maxBonds: 3, color: 0xE6E6E6 },
-            'TI': { name: 'Titanium', valence: 4, maxBonds: 4, color: 0x9EC2C9 },
-            'V':  { name: 'Vanadium', valence: 5, maxBonds: 5, color: 0xA6A6AB },
-            'CR': { name: 'Chromium', valence: 6, maxBonds: 6, color: 0x8A99C7 },
-            'MN': { name: 'Manganese', valence: 7, maxBonds: 7, color: 0x9C7AC7 },
-            'FE': { name: 'Iron', valence: 8, maxBonds: 6, color: 0xE06633 },
-            'CO': { name: 'Cobalt', valence: 9, maxBonds: 6, color: 0xF090A0 },
-            'NI': { name: 'Nickel', valence: 10, maxBonds: 6, color: 0x50D050 },
-            'CU': { name: 'Copper', valence: 11, maxBonds: 4, color: 0xC88033 },
-            'ZN': { name: 'Zinc', valence: 12, maxBonds: 2, color: 0x7D80B0 },
-            'GA': { name: 'Gallium', valence: 3, maxBonds: 3, color: 0xC38F8F },
-            'GE': { name: 'Germanium', valence: 4, maxBonds: 4, color: 0x668F8F },
-            'AS': { name: 'Arsenic', valence: 5, maxBonds: 5, color: 0xBD80E3 },
-            'SE': { name: 'Selenium', valence: 6, maxBonds: 6, color: 0xFFA100 },
-            'BR': { name: 'Bromine', valence: 7, maxBonds: 1, color: 0xA62929 },
-            'KR': { name: 'Krypton', valence: 8, maxBonds: 0, color: 0x5CB8D1 },
-            'Y':  { name: 'Yttrium', valence: 3, maxBonds: 3, color: 0x94FFFF },
-            'ZR': { name: 'Zirconium', valence: 4, maxBonds: 4, color: 0x94E3E3 },
-            'NB': { name: 'Niobium', valence: 5, maxBonds: 5, color: 0x73C2C9 },
-            'MO': { name: 'Molybdenum', valence: 6, maxBonds: 6, color: 0x54B5B5 },
-            'TC': { name: 'Technetium', valence: 7, maxBonds: 6, color: 0x3B9E9E },
-            'RU': { name: 'Ruthenium', valence: 8, maxBonds: 6, color: 0x248F8F },
-            'RH': { name: 'Rhodium', valence: 9, maxBonds: 6, color: 0x0A7D7D },
-            'PD': { name: 'Palladium', valence: 10, maxBonds: 4, color: 0x006969 },
-            'AG': { name: 'Silver', valence: 11, maxBonds: 2, color: 0xC0C0C0 },
-            'CD': { name: 'Cadmium', valence: 12, maxBonds: 2, color: 0xFFD98F },
-            'IN': { name: 'Indium', valence: 3, maxBonds: 3, color: 0xA67573 },
-            'SN': { name: 'Tin', valence: 4, maxBonds: 4, color: 0x667F80 },
-            'SB': { name: 'Antimony', valence: 5, maxBonds: 5, color: 0x9E63B5 },
-            'TE': { name: 'Tellurium', valence: 6, maxBonds: 6, color: 0xD47A00 },
-            'I':  { name: 'Iodine', valence: 7, maxBonds: 1, color: 0x940094 },
-            'XE': { name: 'Xenon', valence: 8, maxBonds: 6, color: 0x429EB0 }
+        // Universal CPK Elemental Palette & Covalent Radii
+        const CPK_COLORS = {
+            'H': 0xFFFFFF, 'HE': 0xD9FFFF, 'LI': 0xCC80FF, 'BE': 0xC2FF00,
+            'B': 0xFFB5B5, 'C': 0x555555, 'N': 0x3050F8, 'O': 0xFF0D0D,
+            'F': 0x90E050, 'NE': 0xB3E3F5, 'NA': 0xAB5CF2, 'MG': 0x8AFF00,
+            'AL': 0xBFA6A6, 'SI': 0xF0C8A0, 'P': 0xFF8000, 'S': 0xFFFF30,
+            'CL': 0x1FF01F, 'AR': 0x80E1E1, 'K': 0x8F40D4, 'CA': 0x3DFF00,
+            'FE': 0xE06633, 'CU': 0xC88033, 'ZN': 0x7D80B0, 'BR': 0xA62929,
+            'I': 0x940094, 'XE': 0x429EB0, 'DEFAULT': 0xDD77DD
         };
+
+        const VALENCE_LIMITS = {
+            'H': 1, 'C': 4, 'N': 3, 'O': 2, 'F': 1, 'CL': 1, 'BR': 1, 'I': 1,
+            'S': 6, 'P': 5, 'B': 3, 'SI': 4, 'NA': 1, 'K': 1, 'CA': 2, 'MG': 2
+        };
+
+        function getElementColor(symbol) {
+            const sym = symbol.toUpperCase();
+            return CPK_COLORS[sym] || CPK_COLORS['DEFAULT'];
+        }
 
         function clearFormula() {
             document.getElementById('formulaInput').value = '';
@@ -446,6 +396,12 @@
             document.getElementById('errorBox').classList.add('hidden');
         }
 
+        function showLoading(show) {
+            const loader = document.getElementById('loadingStatus');
+            if (show) loader.classList.remove('hidden');
+            else loader.classList.add('hidden');
+        }
+
         let scene, camera, renderer, labelRenderer, controls, compoundGroup;
         let autoSpin = true;
 
@@ -455,7 +411,7 @@
             const height = container.clientHeight;
 
             scene = new THREE.Scene();
-            scene.fog = new THREE.FogExp2(0x030712, 0.015);
+            scene.fog = new THREE.FogExp2(0x030712, 0.012);
 
             camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 100);
             camera.position.set(0, 5, 12);
@@ -466,7 +422,6 @@
             renderer.shadowMap.enabled = true;
             container.appendChild(renderer.domElement);
 
-            // CSS 2D Label Renderer
             labelRenderer = new THREE.CSS2DRenderer();
             labelRenderer.setSize(width, height);
             labelRenderer.domElement.style.position = 'absolute';
@@ -477,10 +432,10 @@
             controls = new THREE.OrbitControls(camera, renderer.domElement);
             controls.enableDamping = true;
             controls.dampingFactor = 0.05;
-            controls.maxDistance = 25;
-            controls.minDistance = 4;
+            controls.maxDistance = 45;
+            controls.minDistance = 2;
 
-            const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
             scene.add(ambientLight);
 
             const dirLight1 = new THREE.DirectionalLight(0xffffff, 0.8);
@@ -534,163 +489,161 @@
             }
         }
 
-        function getCoordinates(steric) {
-            const positions = [];
-            const r = 2.8; 
+        // UNIVERSAL MOLECULAR ENGINE: PubChem API Resolver + Fallback Force Graph Engine
+        async function fetchMolecularStructure(query) {
+            let cleanQuery = query.trim();
             
-            if (steric === 1) {
-                positions.push(new THREE.Vector3(r, 0, 0));
+            try {
+                // Query PubChem Compound Database for 3D/SDF metadata
+                const cidRes = await fetch(`https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/${encodeURIComponent(cleanQuery)}/cids/JSON`);
+                if (!cidRes.ok) throw new Error("API lookup failed, switching to force graph algorithm.");
+                
+                const cidData = await cidRes.json();
+                const cid = cidData.IdentifierList.CID[0];
+
+                const sdfRes = await fetch(`https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/${cid}/SDF?record_type=3d`);
+                let sdfText = "";
+                if (sdfRes.ok) {
+                    sdfText = await sdfRes.text();
+                } else {
+                    const sdf2dRes = await fetch(`https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/${cid}/SDF?record_type=2d`);
+                    if (sdf2dRes.ok) sdfText = await sdf2dRes.text();
+                }
+
+                if (sdfText) {
+                    return parseSDF(sdfText, cleanQuery);
+                }
+            } catch (err) {
+                console.warn("Universal API query fallback:", err);
             }
-            else if (steric === 2) {
-                positions.push(new THREE.Vector3(0, 0, r));
-                positions.push(new THREE.Vector3(0, 0, -r));
-            } 
-            else if (steric === 3) {
-                positions.push(new THREE.Vector3(0, r, 0));
-                positions.push(new THREE.Vector3(r * Math.cos(Math.PI/6), -r * Math.sin(Math.PI/6), 0));
-                positions.push(new THREE.Vector3(-r * Math.cos(Math.PI/6), -r * Math.sin(Math.PI/6), 0));
-            } 
-            else if (steric === 4) {
-                positions.push(new THREE.Vector3(0, 0, r));
-                positions.push(new THREE.Vector3(r * (2*Math.sqrt(2)/3), 0, -r/3));
-                positions.push(new THREE.Vector3(-r * (Math.sqrt(2)/3), r * (Math.sqrt(6)/3), -r/3));
-                positions.push(new THREE.Vector3(-r * (Math.sqrt(2)/3), -r * (Math.sqrt(6)/3), -r/3));
-            } 
-            else if (steric === 5) {
-                positions.push(new THREE.Vector3(0, r, 0));
-                positions.push(new THREE.Vector3(0, -r, 0));
-                positions.push(new THREE.Vector3(r, 0, 0));
-                positions.push(new THREE.Vector3(-r * 0.5, 0, r * Math.sqrt(3)/2));
-                positions.push(new THREE.Vector3(-r * 0.5, 0, -r * Math.sqrt(3)/2));
-            } 
-            else if (steric === 6) {
-                positions.push(new THREE.Vector3(0, r, 0));
-                positions.push(new THREE.Vector3(0, -r, 0));
-                positions.push(new THREE.Vector3(r, 0, 0));
-                positions.push(new THREE.Vector3(-r, 0, 0));
-                positions.push(new THREE.Vector3(0, 0, r));
-                positions.push(new THREE.Vector3(0, 0, -r));
-            }
-            return positions;
+
+            // Fallback Engine: Synthetic Molecular Graph Generator
+            return generateSyntheticStructure(cleanQuery);
         }
 
-        function parseFormulaChemically(formula) {
-            let charge = 0;
-            let workingFormula = formula.replace(/\s+/g, '');
-            
-            const chargeMatch = workingFormula.match(/([0-9]*)([\+\-])+$/);
-            if (chargeMatch) {
-                const sign = chargeMatch[2];
-                const amount = chargeMatch[1] ? parseInt(chargeMatch[1]) : 1;
-                charge = (sign === '+') ? amount : -amount;
-                workingFormula = workingFormula.substring(0, chargeMatch.index);
+        function parseSDF(sdf, name) {
+            const lines = sdf.split('\n');
+            if (lines.length < 5) return null;
+
+            let countsLine = lines[3];
+            let atomCount = parseInt(countsLine.substring(0, 3).trim());
+            let bondCount = parseInt(countsLine.substring(3, 6).trim());
+
+            if (isNaN(atomCount) || atomCount <= 0) return null;
+
+            const atoms = [];
+            const bonds = [];
+
+            for (let i = 4; i < 4 + atomCount; i++) {
+                const l = lines[i];
+                const x = parseFloat(l.substring(0, 10).trim());
+                const y = parseFloat(l.substring(10, 20).trim());
+                const z = parseFloat(l.substring(20, 30).trim());
+                const symbol = l.substring(31, 34).trim();
+
+                atoms.push({ id: i - 4, symbol, x, y, z });
             }
 
+            for (let i = 4 + atomCount; i < 4 + atomCount + bondCount; i++) {
+                const l = lines[i];
+                const source = parseInt(l.substring(0, 3).trim()) - 1;
+                const target = parseInt(l.substring(3, 6).trim()) - 1;
+                const order = parseInt(l.substring(6, 9).trim()) || 1;
+
+                bonds.push({ source, target, order });
+            }
+
+            return { name, atoms, bonds, source: 'PubChem Universal Engine' };
+        }
+
+        function generateSyntheticStructure(formula) {
             const pattern = /([A-Z][a-z]?)(\d*)/g;
-            const parsedElements = [];
             let match;
+            const parsedAtoms = [];
             
+            let workingFormula = formula.replace(/[\+\-\d]+$/g, '');
+
             while ((match = pattern.exec(workingFormula)) !== null) {
-                const element = match[1]; 
+                const symbol = match[1];
                 const count = match[2] ? parseInt(match[2]) : 1;
-                parsedElements.push({ element, count });
-            }
-
-            if (parsedElements.length === 0) {
-                return { error: "Please enter a valid chemical formula (e.g., PO4 3-, I3-, NaCl)." };
-            }
-
-            for (let el of parsedElements) {
-                if (!PERIODIC_TABLE[el.element.toUpperCase()]) {
-                    return { error: `Element symbol "${el.element}" is not valid.` };
+                for (let i = 0; i < count; i++) {
+                    parsedAtoms.push(symbol);
                 }
             }
 
-            let centralSymbol = '';
-            let ligandsList = [];
+            if (parsedAtoms.length === 0) {
+                return { error: "Could not parse chemical formula format." };
+            }
+
+            // Initialize atoms with random 3D position vector
+            const atoms = parsedAtoms.map((symbol, idx) => ({
+                id: idx,
+                symbol,
+                x: (Math.random() - 0.5) * 4,
+                y: (Math.random() - 0.5) * 4,
+                z: (Math.random() - 0.5) * 4
+            }));
+
+            // Build bonds dynamically using valence limits & distance heuristic
+            const bonds = [];
+            const valenceCount = new Array(atoms.length).fill(0);
+
+            for (let i = 0; i < atoms.length; i++) {
+                for (let j = i + 1; j < atoms.length; j++) {
+                    const maxI = VALENCE_LIMITS[atoms[i].symbol.toUpperCase()] || 4;
+                    const maxJ = VALENCE_LIMITS[atoms[j].symbol.toUpperCase()] || 4;
+
+                    if (valenceCount[i] < maxI && valenceCount[j] < maxJ) {
+                        bonds.push({ source: i, target: j, order: 1 });
+                        valenceCount[i]++;
+                        valenceCount[j]++;
+                    }
+                }
+            }
+
+            // 3D Force-Directed Layout Simulation (Coulomb Repulsion + Hooke Spring Law)
+            const iterations = 100;
+            const k = 1.8; // Ideal distance
             
-            if (parsedElements.length === 1) {
-                const singleSymbol = parsedElements[0].element;
-                if (parsedElements[0].count < 2) {
-                    return { error: "Formulas require at least two atoms to visualize bonds." };
+            for (let iter = 0; iter < iterations; iter++) {
+                // Repulsion
+                for (let i = 0; i < atoms.length; i++) {
+                    for (let j = i + 1; j < atoms.length; j++) {
+                        let dx = atoms[j].x - atoms[i].x;
+                        let dy = atoms[j].y - atoms[i].y;
+                        let dz = atoms[j].z - atoms[i].z;
+                        let dist = Math.sqrt(dx * dx + dy * dy + dz * dz) + 0.01;
+                        let force = (k * k) / dist;
+                        
+                        let fx = (dx / dist) * force * 0.1;
+                        let fy = (dy / dist) * force * 0.1;
+                        let fz = (dz / dist) * force * 0.1;
+
+                        atoms[i].x -= fx; atoms[i].y -= fy; atoms[i].z -= fz;
+                        atoms[j].x += fx; atoms[j].y += fy; atoms[j].z += fz;
+                    }
                 }
-                centralSymbol = singleSymbol;
-                ligandsList.push({ element: singleSymbol, count: parsedElements[0].count - 1 });
-            } else {
-                let centralIdx = 0;
-                if (parsedElements[0].element.toUpperCase() === 'H' && parsedElements.length > 1) {
-                    centralIdx = 1; 
+
+                // Spring attraction across bonds
+                for (let bond of bonds) {
+                    let a1 = atoms[bond.source];
+                    let a2 = atoms[bond.target];
+                    let dx = a2.x - a1.x;
+                    let dy = a2.y - a1.y;
+                    let dz = a2.z - a1.z;
+                    let dist = Math.sqrt(dx * dx + dy * dy + dz * dz) + 0.01;
+                    let force = (dist - k) * 0.2;
+
+                    let fx = (dx / dist) * force;
+                    let fy = (dy / dist) * force;
+                    let fz = (dz / dist) * force;
+
+                    a1.x += fx; a1.y += fy; a1.z += fz;
+                    a2.x -= fx; a2.y -= fy; a2.z -= fz;
                 }
-                centralSymbol = parsedElements[centralIdx].element;
-                ligandsList = parsedElements.filter((_, idx) => idx !== centralIdx);
             }
 
-            const centralAtom = PERIODIC_TABLE[centralSymbol.toUpperCase()];
-            let totalLigands = 0;
-            let ligandSymbol = '';
-
-            ligandsList.forEach(l => {
-                totalLigands += l.count;
-                ligandSymbol = l.element;
-            });
-
-            if (totalLigands === 0) {
-                return { error: "At least one surrounding ligand is needed to build coordinates." };
-            }
-
-            const ligandAtom = PERIODIC_TABLE[ligandSymbol.toUpperCase()];
-            let centralValence = centralAtom.valence - charge;
-            
-            if (centralValence < 0) {
-                return { error: `Positive charge is too high. Element "${centralAtom.name}" does not possess enough electrons.` };
-            }
-
-            let remainingValenceElectrons = centralValence - totalLigands;
-            let lonePairs = Math.max(0, Math.floor(remainingValenceElectrons / 2));
-            let steric = totalLigands + lonePairs;
-
-            if (steric > 6) {
-                return { error: `Steric number (${steric}) of this configuration exceeds visualizer rendering limits (Max: 6).` };
-            }
-
-            return {
-                name: `${formula.toUpperCase()}`,
-                central: centralSymbol,
-                ligand: ligandSymbol,
-                steric: steric,
-                lonePairs: lonePairs,
-                geometry: getGeometryName(steric, lonePairs),
-                electronGeom: getGeometryName(steric, 0),
-                hybridization: getHybridization(steric)
-            };
-        }
-
-        function getGeometryName(steric, lonePairs) {
-            if (steric === 1) return 'Linear (Diatomic)';
-            if (steric === 2) return 'Linear';
-            if (steric === 3) return lonePairs === 1 ? 'Bent' : 'Trigonal Planar';
-            if (steric === 4) {
-                if (lonePairs === 1) return 'Trigonal Pyramidal';
-                if (lonePairs === 2) return 'Bent';
-                return 'Tetrahedral';
-            }
-            if (steric === 5) {
-                if (lonePairs === 1) return 'Seesaw';
-                if (lonePairs === 2) return 'T-shaped';
-                if (lonePairs === 3) return 'Linear';
-                return 'Trigonal Bipyramidal';
-            }
-            if (steric === 6) {
-                if (lonePairs === 1) return 'Square Pyramidal';
-                if (lonePairs === 2) return 'Square Planar';
-                return 'Octahedral';
-            }
-            return 'Unknown';
-        }
-
-        function getHybridization(steric) {
-            const hybs = { 1: 'No Hybridization', 2: 'sp', 3: 'sp²', 4: 'sp³', 5: 'sp³d', 6: 'sp³d²' };
-            return hybs[steric] || 'Unknown';
+            return { name: formula.toUpperCase(), atoms, bonds, source: 'Synthetic Engine' };
         }
 
         function createAtomLabel(text, position) {
@@ -713,123 +666,100 @@
             }
         }
 
-        function buildMolecule(config) {
+        function render3DStructure(data) {
             clearSceneAndLabels();
 
-            const { central, ligand, steric, lonePairs } = config;
-            const centralColor = PERIODIC_TABLE[central.toUpperCase()]?.color || 0x9E9E9E;
-            const ligandColor = PERIODIC_TABLE[ligand.toUpperCase()]?.color || 0x9E9E9E;
+            const { atoms, bonds } = data;
 
-            const centralGeometry = new THREE.SphereGeometry(1.0, 32, 32);
-            const centralMaterial = new THREE.MeshPhongMaterial({
-                color: centralColor,
-                shininess: 90,
-                specular: 0x444444
+            // Center structure
+            let cx = 0, cy = 0, cz = 0;
+            atoms.forEach(a => { cx += a.x; cy += a.y; cz += a.z; });
+            cx /= atoms.length; cy /= atoms.length; cz /= atoms.length;
+
+            const atomMeshes = [];
+
+            // Render Atoms
+            atoms.forEach(atom => {
+                const pos = new THREE.Vector3(atom.x - cx, atom.y - cy, atom.z - cz);
+                const color = getElementColor(atom.symbol);
+                const radius = atom.symbol.toUpperCase() === 'H' ? 0.45 : 0.75;
+
+                const geom = new THREE.SphereGeometry(radius, 32, 32);
+                const mat = new THREE.MeshPhongMaterial({ color: color, shininess: 80 });
+                const mesh = new THREE.Mesh(geom, mat);
+                mesh.position.copy(pos);
+
+                const label = createAtomLabel(atom.symbol, new THREE.Vector3(0, radius + 0.35, 0));
+                mesh.add(label);
+
+                compoundGroup.add(mesh);
+                atomMeshes.push(pos);
             });
-            const centralAtomMesh = new THREE.Mesh(centralGeometry, centralMaterial);
-            compoundGroup.add(centralAtomMesh);
 
-            const centralLabel = createAtomLabel(central, new THREE.Vector3(0, 1.3, 0));
-            centralAtomMesh.add(centralLabel);
+            // Render Bonds
+            bonds.forEach(bond => {
+                const p1 = atomMeshes[bond.source];
+                const p2 = atomMeshes[bond.target];
 
-            const coords = getCoordinates(steric);
-            const bondingCount = steric - lonePairs;
+                if (!p1 || !p2) return;
 
-            for (let i = 0; i < bondingCount; i++) {
-                const targetPos = coords[i];
+                const distance = p1.distanceTo(p2);
+                const midPoint = new THREE.Vector3().addVectors(p1, p2).multiplyScalar(0.5);
 
-                const outerGeom = new THREE.SphereGeometry(0.7, 32, 32);
-                const outerMat = new THREE.MeshPhongMaterial({
-                    color: ligandColor,
-                    shininess: 90,
-                    specular: 0x333333
-                });
-                const outerMesh = new THREE.Mesh(outerGeom, outerMat);
-                outerMesh.position.copy(targetPos);
-                compoundGroup.add(outerMesh);
+                const bondOrder = bond.order || 1;
+                const offsetStep = 0.18;
 
-                const outerLabel = createAtomLabel(ligand, new THREE.Vector3(0, 0.9, 0));
-                outerMesh.add(outerLabel);
+                for (let o = 0; o < bondOrder; o++) {
+                    const bondGeom = new THREE.CylinderGeometry(0.1, 0.1, distance, 16);
+                    const bondMat = new THREE.MeshPhongMaterial({ color: 0xcccccc, shininess: 40 });
+                    const bondMesh = new THREE.Mesh(bondGeom, bondMat);
 
-                const bondDist = targetPos.length();
-                const bondGeom = new THREE.CylinderGeometry(0.15, 0.15, bondDist, 16);
-                const bondMat = new THREE.MeshPhongMaterial({ color: 0x888888, shininess: 50 });
-                const bondMesh = new THREE.Mesh(bondGeom, bondMat);
+                    let pos = midPoint.clone();
+                    if (bondOrder > 1) {
+                        const shift = (o - (bondOrder - 1) / 2) * offsetStep;
+                        pos.x += shift;
+                    }
 
-                bondMesh.position.copy(targetPos).multiplyScalar(0.5);
-                const direction = new THREE.Vector3().copy(targetPos).normalize();
-                const alignAxis = new THREE.Vector3(0, 1, 0);
-                bondMesh.quaternion.setFromUnitVectors(alignAxis, direction);
-                compoundGroup.add(bondMesh);
-            }
+                    bondMesh.position.copy(pos);
+                    const direction = new THREE.Vector3().subVectors(p2, p1).normalize();
+                    const alignAxis = new THREE.Vector3(0, 1, 0);
+                    bondMesh.quaternion.setFromUnitVectors(alignAxis, direction);
 
-            for (let i = bondingCount; i < steric; i++) {
-                const targetPos = coords[i];
-                const direction = new THREE.Vector3().copy(targetPos).normalize();
-
-                const lobeGroup = new THREE.Group();
-                const lobeGeom = new THREE.SphereGeometry(0.65, 32, 32);
-                lobeGeom.scale(1, 1.6, 1);
-                
-                const lobeMat = new THREE.MeshPhysicalMaterial({
-                    color: 0xD946EF,
-                    transparent: true,
-                    opacity: 0.5,
-                    roughness: 0.1,
-                    metalness: 0.1,
-                    transmission: 0.6,
-                    side: THREE.DoubleSide,
-                    depthWrite: false
-                });
-                
-                const lobeMesh = new THREE.Mesh(lobeGeom, lobeMat);
-                lobeMesh.position.set(0, 0.8, 0); 
-                lobeGroup.add(lobeMesh);
-
-                const loneLabel = createAtomLabel("Lone Pair", new THREE.Vector3(0, 1.8, 0));
-                lobeMesh.add(loneLabel);
-
-                const electronGeom = new THREE.SphereGeometry(0.12, 16, 16);
-                const electronMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
-                
-                const e1 = new THREE.Mesh(electronGeom, electronMat);
-                e1.position.set(0.2, 0.8, 0.1);
-                const e2 = new THREE.Mesh(electronGeom, electronMat);
-                e2.position.set(-0.2, 0.8, -0.1);
-                
-                lobeGroup.add(e1);
-                lobeGroup.add(e2);
-
-                lobeGroup.position.copy(direction).multiplyScalar(1.2);
-                const alignAxis = new THREE.Vector3(0, 1, 0);
-                lobeGroup.quaternion.setFromUnitVectors(alignAxis, direction);
-                
-                compoundGroup.add(lobeGroup);
-            }
+                    compoundGroup.add(bondMesh);
+                }
+            });
         }
 
-        function updateDashboard(config) {
-            document.getElementById('propName').innerText = config.name;
-            document.getElementById('propElectronGeom').innerText = config.electronGeom;
-            document.getElementById('propMolecularGeom').innerText = config.geometry;
-            document.getElementById('propHybrid').innerText = config.hybridization;
-            document.getElementById('propBonds').innerText = `${config.steric - config.lonePairs} Domains`;
-            document.getElementById('propLone').innerText = `${config.lonePairs} Domains`;
+        function updateDashboard(data) {
+            document.getElementById('propName').innerText = data.name;
+            document.getElementById('propAtomCount').innerText = `${data.atoms.length} Atoms`;
+            document.getElementById('propBondCount').innerText = `${data.bonds.length} Bonds`;
+            
+            let classification = "Polyatomic Molecule";
+            if (data.atoms.length === 1) classification = "Monoatomic";
+            else if (data.atoms.length === 2) classification = "Diatomic";
+            else if (data.atoms.length === 3) classification = "Triatomic";
+            else if (data.name.includes('+') || data.name.includes('-')) classification = "Polyatomic Ion";
+
+            document.getElementById('propClass').innerText = classification;
         }
 
-        function visualizeInput() {
+        async function visualizeInput() {
             const rawFormula = document.getElementById('formulaInput').value.trim();
             if (!rawFormula) return;
 
             hideError();
-            const result = parseFormulaChemically(rawFormula);
+            showLoading(true);
 
-            if (result.error) {
-                showError(result.error);
+            const result = await fetchMolecularStructure(rawFormula);
+            showLoading(false);
+
+            if (!result || result.error) {
+                showError(result ? result.error : "Failed to parse structure.");
                 return;
             }
 
-            buildMolecule(result);
+            render3DStructure(result);
             updateDashboard(result);
         }
 
@@ -841,23 +771,21 @@
         });
 
         window.onload = () => {
-            // Setup intro video termination triggers
             const introLoader = document.getElementById('intro-loader');
             const introVideo = document.getElementById('intro-video');
             
             function handleIntroEnd() {
-                introLoader.classList.add('exit-animate');
-                // Clean up elements from DOM post-animation to preserve resources
-                setTimeout(() => {
-                    introLoader.remove();
-                }, 1100);
+                if (introLoader) {
+                    introLoader.classList.add('exit-animate');
+                    setTimeout(() => {
+                        introLoader.remove();
+                    }, 1100);
+                }
             }
 
             if (introVideo) {
                 introVideo.addEventListener('ended', handleIntroEnd);
-                // Fallback catch if browser policies block autoloading configurations entirely
                 introVideo.addEventListener('error', handleIntroEnd);
-                // Secondary safety timeout: bypass interface if asset fails to resolve within 6 seconds
                 setTimeout(() => {
                     if (document.getElementById('intro-loader')) handleIntroEnd();
                 }, 6000);
@@ -865,7 +793,7 @@
 
             checkViewportSize();
             init3D();
-            document.getElementById('formulaInput').value = 'H2O';
+            document.getElementById('formulaInput').value = 'C6H6';
             visualizeInput();
         };
     </script>
