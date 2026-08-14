@@ -3,379 +3,48 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Universal 3D VSEPR Molecular Engine</title>
+    <title>Under Maintenance</title>
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { display: flex; height: 100vh; background-color: #0b0f19; color: #e2e8f0; overflow: hidden; }
-        
-        #sidebar { width: 340px; background: #111827; padding: 20px; display: flex; flex-direction: column; gap: 20px; border-right: 1px solid #1f2937; z-index: 10; }
-        #canvas-container { flex: 1; position: relative; }
-        
-        h1 { font-size: 1.25rem; font-weight: 700; color: #38bdf8; display: flex; align-items: center; gap: 8px; }
-        .input-group { display: flex; flex-direction: column; gap: 8px; }
-        label { font-size: 0.85rem; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; }
-        
-        input[type="text"] { background: #1f2937; border: 1px solid #374151; color: #fff; padding: 12px; border-radius: 8px; font-size: 1.1rem; font-weight: 600; outline: none; }
-        input[type="text"]:focus { border-color: #38bdf8; }
-        
-        button { background: #2563eb; color: #fff; border: none; padding: 12px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: background 0.2s; }
-        button:hover { background: #1d4ed8; }
-        
-        .card { background: #1f2937; padding: 16px; border-radius: 8px; border: 1px solid #374151; }
-        .card h3 { font-size: 0.9rem; color: #9ca3af; margin-bottom: 12px; border-bottom: 1px solid #374151; padding-bottom: 6px; }
-        .info-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.9rem; }
-        .info-value { font-weight: 600; color: #f3f4f6; }
-        
-        #legend { display: flex; flex-wrap: wrap; gap: 8px; }
-        .legend-item { display: flex; align-items: center; gap: 6px; font-size: 0.8rem; background: #111827; padding: 4px 8px; border-radius: 4px; }
-        .color-dot { width: 12px; height: 12px; border-radius: 50%; }
-        
-        #error-msg { color: #f87171; font-size: 0.85rem; display: none; margin-top: -10px; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #0d1117;
+            color: #c9d1d9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            text-align: center;
+            padding: 20px;
+        }
+        .container {
+            max-width: 500px;
+            padding: 40px;
+            border-radius: 12px;
+            background: #161b22;
+            border: 1px solid #30363d;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+        }
+        h1 {
+            color: #58a6ff;
+            font-size: 1.8rem;
+            margin-bottom: 12px;
+        }
+        p {
+            font-size: 1rem;
+            line-height: 1.5;
+            color: #8b949e;
+        }
     </style>
-    <!-- Three.js & OrbitControls -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 </head>
 <body>
-
-    <div id="sidebar">
-        <h1>Universal VSEPR Engine</h1>
-        
-        <div class="input-group">
-            <label for="formula-input">Formula / Ion</label>
-            <input type="text" id="formula-input" value="XeOF2" placeholder="e.g., XeOF2, SF6, SO4^2-, NH4+">
-            <div id="error-msg">Invalid Chemical Formula</div>
-            <button id="render-btn">Generate 3D Structure</button>
-        </div>
-
-        <div class="card">
-            <h3>Structural Analysis</h3>
-            <div class="info-row"><span>Formula:</span> <span class="info-value" id="res-formula">-</span></div>
-            <div class="info-row"><span>Central Atom:</span> <span class="info-value" id="res-central">-</span></div>
-            <div class="info-row"><span>Total Atoms:</span> <span class="info-value" id="res-total-atoms">-</span></div>
-            <div class="info-row"><span>Steric Number:</span> <span class="info-value" id="res-steric">-</span></div>
-            <div class="info-row"><span>Lone Pairs:</span> <span class="info-value" id="res-lone-pairs">-</span></div>
-            <div class="info-row"><span>Geometry:</span> <span class="info-value" id="res-geometry" style="color: #38bdf8;">-</span></div>
-        </div>
-
-        <div class="card">
-            <h3>Element Legend</h3>
-            <div id="legend"></div>
-        </div>
+    <div class="container">
+        <h1>Under Construction</h1>
+        <p>We are currently updating our site. We will be back shortly with new improvements!</p>
     </div>
-
-    <div id="canvas-container"></div>
-
-    <script>
-        // ==========================================
-        // 1. PERIODIC TABLE DATA ENGINE (CPK + Valence)
-        // ==========================================
-        const PERIODIC_TABLE = {
-            H:  { name: 'Hydrogen',   valence: 1, en: 2.20, color: 0xFFFFFF, radius: 0.3 },
-            B:  { name: 'Boron',      valence: 3, en: 2.04, color: 0x00FF00, radius: 0.5 },
-            C:  { name: 'Carbon',     valence: 4, en: 2.55, color: 0x909090, radius: 0.5 },
-            N:  { name: 'Nitrogen',   valence: 5, en: 3.04, color: 0x3050F8, radius: 0.48 },
-            O:  { name: 'Oxygen',     valence: 6, en: 3.44, color: 0xFF0D0D, radius: 0.45 },
-            F:  { name: 'Fluorine',   valence: 7, en: 3.98, color: 0x90E050, radius: 0.42 },
-            P:  { name: 'Phosphorus', valence: 5, en: 2.19, color: 0xFF8000, radius: 0.55 },
-            S:  { name: 'Sulfur',     valence: 6, en: 2.58, color: 0xFFFF30, radius: 0.55 },
-            Cl: { name: 'Chlorine',   valence: 7, en: 3.16, color: 0x1FF01F, radius: 0.5 },
-            Br: { name: 'Bromine',    valence: 7, en: 2.96, color: 0xA62929, radius: 0.55 },
-            I:  { name: 'Iodine',     valence: 7, en: 2.66, color: 0x940094, radius: 0.6 },
-            Xe: { name: 'Xenon',      valence: 8, en: 2.60, color: 0x429EB0, radius: 0.65 },
-            Kr: { name: 'Krypton',    valence: 8, en: 3.00, color: 0x5CB8D1, radius: 0.62 },
-            Se: { name: 'Selenium',   valence: 6, en: 2.55, color: 0xFFE100, radius: 0.55 }
-        };
-
-        // Fallback for elements missing in table
-        function getElementData(symbol) {
-            return PERIODIC_TABLE[symbol] || { name: symbol, valence: 4, en: 2.0, color: 0xDDDDDD, radius: 0.5 };
-        }
-
-        // ==========================================
-        // 2. FORMULA PARSER ENGINE
-        // ==========================================
-        function parseFormula(input) {
-            let formulaStr = input.trim();
-            let charge = 0;
-
-            // Extract Charge: e.g. SO4^2-, NH4+, NO3-
-            const chargeMatch = formulaStr.match(/[\^]?([+-]?\d*[+-])$/);
-            if (chargeMatch) {
-                const cStr = chargeMatch[1];
-                if (cStr === '+' || cStr === '1+') charge = 1;
-                else if (cStr === '-' || cStr === '1-') charge = -1;
-                else if (cStr.endsWith('+')) charge = parseInt(cStr);
-                else if (cStr.endsWith('-')) charge = -parseInt(cStr);
-                formulaStr = formulaStr.replace(chargeMatch[0], '');
-            }
-
-            // Extract Atoms
-            const regex = /([A-Z][a-z]?)(\d*)/g;
-            const atoms = {};
-            let match;
-            let totalAtomsCount = 0;
-
-            while ((match = regex.exec(formulaStr)) !== null) {
-                if (match[0] === '') break;
-                const elem = match[1];
-                const count = match[2] ? parseInt(match[2], 10) : 1;
-                atoms[elem] = (atoms[elem] || 0) + count;
-                totalAtomsCount += count;
-            }
-
-            if (Object.keys(atoms).length === 0) return null;
-
-            return { atoms, charge, totalAtomsCount, rawFormula: input };
-        }
-
-        // ==========================================
-        // 3. UNIVERSAL VSEPR CALCULATOR ENGINE
-        // ==========================================
-        function calculateVSEPR(parsed) {
-            const { atoms, charge } = parsed;
-            const elements = Object.keys(atoms);
-
-            // Determine Central Atom (Lowest EN, non-Hydrogen, or single unique atom)
-            let centralAtom = elements[0];
-            let minEN = 999;
-
-            for (const elem of elements) {
-                if (elem === 'H') continue;
-                // Unique single atom usually central
-                if (atoms[elem] === 1) {
-                    centralAtom = elem;
-                    break;
-                }
-                const data = getElementData(elem);
-                if (data.en < minEN) {
-                    minEN = data.en;
-                    centralAtom = elem;
-                }
-            }
-
-            const centralData = getElementData(centralAtom);
-            let centralValence = centralData.valence;
-
-            // Calculate bonding electrons used by outer atoms
-            let bondingElectrons = 0;
-            let outerAtomsList = [];
-
-            for (const [elem, count] of Object.entries(atoms)) {
-                let numToBind = (elem === centralAtom) ? count - 1 : count;
-                for (let i = 0; i < numToBind; i++) {
-                    outerAtomsList.push(elem);
-                    // O and S form double bonds (take 2 e-) unless constrained
-                    if ((elem === 'O' || elem === 'S') && centralValence >= 4) {
-                        bondingElectrons += 2;
-                    } else {
-                        bondingElectrons += 1; // Halogens, H form single bond (take 1 e-)
-                    }
-                }
-            }
-
-            // Calculate Lone Pairs
-            let remainingElectrons = centralValence - bondingElectrons - charge;
-            let lonePairs = Math.max(0, Math.floor(remainingElectrons / 2));
-
-            const bondedAtomsCount = outerAtomsList.length;
-            const stericNumber = bondedAtomsCount + lonePairs;
-
-            // Geometry Lookup Map (StericNumber - LonePairs)
-            const GEOMETRY_NAMES = {
-                "2-0": "Linear",
-                "3-0": "Trigonal Planar",
-                "3-1": "Bent / Angular",
-                "4-0": "Tetrahedral",
-                "4-1": "Trigonal Pyramidal",
-                "4-2": "Bent / Angular",
-                "5-0": "Trigonal Bipyramidal",
-                "5-1": "Seesaw",
-                "5-2": "T-Shaped",
-                "5-3": "Linear",
-                "6-0": "Octahedral",
-                "6-1": "Square Pyramidal",
-                "6-2": "Square Planar"
-            };
-
-            const shapeKey = `${stericNumber}-${lonePairs}`;
-            const geometryName = GEOMETRY_NAMES[shapeKey] || "Complex / Custom";
-
-            return {
-                centralAtom,
-                outerAtomsList,
-                stericNumber,
-                lonePairs,
-                geometryName,
-                shapeKey
-            };
-        }
-
-        // ==========================================
-        // 4. 3D VECTOR COORDINATE TEMPLATES
-        // ==========================================
-        const VSEPR_VECTOR_TEMPLATES = {
-            "2-0": [[0, 0, 1], [0, 0, -1]],
-            
-            "3-0": [[0, 1, 0], [0.866, -0.5, 0], [-0.866, -0.5, 0]],
-            "3-1": [[0.866, -0.3, 0], [-0.866, -0.3, 0]], // Bent
-            
-            "4-0": [[0, 1, 0], [0.943, -0.333, 0], [-0.471, -0.333, 0.816], [-0.471, -0.333, -0.816]],
-            "4-1": [[0.943, -0.333, 0], [-0.471, -0.333, 0.816], [-0.471, -0.333, -0.816]], // Trigonal Pyramidal
-            "4-2": [[0.943, -0.333, 0], [-0.471, -0.333, 0.816]], // Bent
-
-            // 5 Steric: Equatorial = (x,z), Axial = y
-            "5-0": [[0, 1, 0], [0, -1, 0], [1, 0, 0], [-0.5, 0, 0.866], [-0.5, 0, -0.866]],
-            "5-1": [[0, 1, 0], [0, -1, 0], [1, 0, 0], [-0.5, 0, 0.866]], // Seesaw
-            "5-2": [[1, 0, 0], [0, 1, 0], [0, -1, 0]], // T-Shaped (XeOF2: Oxygen Equatorial, 2 Fluorines Axial)
-            "5-3": [[0, 1, 0], [0, -1, 0]], // Linear
-
-            "6-0": [[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [0, 0, 1], [0, 0, -1]],
-            "6-1": [[0, -1, 0], [1, 0, 0], [-1, 0, 0], [0, 0, 1], [0, 0, -1]], // Square Pyramidal
-            "6-2": [[1, 0, 0], [-1, 0, 0], [0, 0, 1], [0, 0, -1]] // Square Planar
-        };
-
-        // ==========================================
-        // 5. THREE.JS 3D SCENE RENDERER
-        // ==========================================
-        const container = document.getElementById('canvas-container');
-        const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x0b0f19);
-
-        const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 1000);
-        camera.position.set(0, 0, 8);
-
-        const renderer = new THREE.WebGLRenderer({ antialias: true });
-        renderer.setSize(container.clientWidth, container.clientHeight);
-        renderer.setPixelRatio(window.devicePixelRatio);
-        container.appendChild(renderer.domElement);
-
-        const controls = new THREE.OrbitControls(camera, renderer.domElement);
-        controls.enableDamping = true;
-
-        // Lighting
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
-        scene.add(ambientLight);
-        const dirLight1 = new THREE.DirectionalLight(0xffffff, 0.8);
-        dirLight1.position.set(5, 10, 7);
-        scene.add(dirLight1);
-        const dirLight2 = new THREE.DirectionalLight(0x38bdf8, 0.3);
-        dirLight2.position.set(-5, -5, -5);
-        scene.add(dirLight2);
-
-        let moleculeGroup = new THREE.Group();
-        scene.add(moleculeGroup);
-
-        function renderMolecule3D(parsed, vsepr) {
-            // Clear Scene
-            while(moleculeGroup.children.length > 0){ 
-                const obj = moleculeGroup.children[0];
-                moleculeGroup.remove(obj); 
-            }
-
-            const BOND_DISTANCE = 2.2;
-
-            // 1. Render Central Atom at Origin (0,0,0)
-            const centralData = getElementData(vsepr.centralAtom);
-            const centralGeo = new THREE.SphereGeometry(centralData.radius, 32, 32);
-            const centralMat = new THREE.MeshStandardMaterial({ color: centralData.color, roughness: 0.2, metalness: 0.1 });
-            const centralMesh = new THREE.Mesh(centralGeo, centralMat);
-            moleculeGroup.add(centralMesh);
-
-            // 2. Fetch Vectors for Geometry
-            const template = VSEPR_VECTOR_TEMPLATES[vsepr.shapeKey] || VSEPR_VECTOR_TEMPLATES["2-0"];
-
-            // 3. Render Outer Atoms & Bonds
-            vsepr.outerAtomsList.forEach((elemSymbol, index) => {
-                const vec = template[index] || [Math.random(), Math.random(), Math.random()];
-                const dir = new THREE.Vector3(...vec).normalize();
-                const atomPos = dir.clone().multiplyScalar(BOND_DISTANCE);
-
-                // Render Outer Atom Sphere
-                const atomData = getElementData(elemSymbol);
-                const atomGeo = new THREE.SphereGeometry(atomData.radius, 32, 32);
-                const atomMat = new THREE.MeshStandardMaterial({ color: atomData.color, roughness: 0.2 });
-                const atomMesh = new THREE.Mesh(atomGeo, atomMat);
-                atomMesh.position.copy(atomPos);
-                moleculeGroup.add(atomMesh);
-
-                // Render Bond Cylinder
-                const bondGeo = new THREE.CylinderGeometry(0.08, 0.08, BOND_DISTANCE, 16);
-                const bondMat = new THREE.MeshStandardMaterial({ color: 0xcccccc, roughness: 0.5 });
-                const bondMesh = new THREE.Mesh(bondGeo, bondMat);
-
-                // Align cylinder with vectors
-                const midPoint = new THREE.Vector3().addVectors(new THREE.Vector3(0,0,0), atomPos).multiplyScalar(0.5);
-                bondMesh.position.copy(midPoint);
-                bondMesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir);
-                moleculeGroup.add(bondMesh);
-            });
-        }
-
-        // ==========================================
-        // 6. UI CONTROLLER & EVENT LISTENERS
-        // ==========================================
-        function processAndRender() {
-            const input = document.getElementById('formula-input').value;
-            const errorMsg = document.getElementById('error-msg');
-            const parsed = parseFormula(input);
-
-            if (!parsed) {
-                errorMsg.style.display = 'block';
-                return;
-            }
-            errorMsg.style.display = 'none';
-
-            const vsepr = calculateVSEPR(parsed);
-
-            // Update UI Sidebar Info
-            document.getElementById('res-formula').innerText = parsed.rawFormula;
-            document.getElementById('res-central').innerText = vsepr.centralAtom;
-            document.getElementById('res-total-atoms').innerText = parsed.totalAtomsCount;
-            document.getElementById('res-steric').innerText = vsepr.stericNumber;
-            document.getElementById('res-lone-pairs').innerText = vsepr.lonePairs;
-            document.getElementById('res-geometry').innerText = vsepr.geometryName;
-
-            // Render Legend
-            const legendContainer = document.getElementById('legend');
-            legendContainer.innerHTML = '';
-            const uniqueElements = Array.from(new Set([vsepr.centralAtom, ...vsepr.outerAtomsList]));
-            
-            uniqueElements.forEach(elem => {
-                const data = getElementData(elem);
-                const hexColor = '#' + data.color.toString(16).padStart(6, '0');
-                const item = document.createElement('div');
-                item.className = 'legend-item';
-                item.innerHTML = `<div class="color-dot" style="background-color: ${hexColor}"></div> ${elem} (${data.name})`;
-                legendContainer.appendChild(item);
-            });
-
-            // Render 3D Scene
-            renderMolecule3D(parsed, vsepr);
-        }
-
-        document.getElementById('render-btn').addEventListener('click', processAndRender);
-        document.getElementById('formula-input').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') processAndRender();
-        });
-
-        window.addEventListener('resize', () => {
-            camera.aspect = container.clientWidth / container.clientHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(container.clientWidth, container.clientHeight);
-        });
-
-        // Initialize First Render
-        processAndRender();
-
-        // Animation Loop
-        function animate() {
-            requestAnimationFrame(animate);
-            moleculeGroup.rotation.y += 0.005; // Auto-rotate
-            controls.update();
-            renderer.render(scene, camera);
-        }
-        animate();
-    </script>
 </body>
 </html>
