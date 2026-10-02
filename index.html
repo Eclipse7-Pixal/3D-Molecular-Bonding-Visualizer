@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <meta name="description" content="Compound Explorer — a universal 3D molecular viewer for organic, inorganic, coordination and ionic chemistry." />
+  <title>Compound Explorer · Universal 3D Molecule Studio</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+
+  <!-- Three.js r128 (pinned via cdnjs; still ships UMD examples/js) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/renderers/CSS2DRenderer.js" defer></script>
+
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- Aurora + particle background -->
+  <div class="aurora" aria-hidden="true">
+    <div class="aurora-blob b1"></div>
+    <div class="aurora-blob b2"></div>
+    <div class="aurora-blob b3"></div>
+    <div class="grid-overlay"></div>
+  </div>
+
+  <!-- Top bar -->
+  <header class="topbar">
+    <div class="brand" data-testid="brand-home">
+      <div class="brand-mark" aria-hidden="true">
+        <span class="nucleus"></span>
+        <span class="ring r1"></span>
+        <span class="ring r2"></span>
+        <span class="ring r3"></span>
+      </div>
+      <div class="brand-text">
+        <h1>Compound<span>Explorer</span></h1>
+        <small>universal molecular studio</small>
+      </div>
+    </div>
+
+    <div class="topbar-actions">
+      <button class="icon-btn" id="shortcutHint" title="Press Ctrl/Cmd + K to search" data-testid="shortcut-hint-btn">
+        <kbd>⌘</kbd><kbd>K</kbd>
+      </button>
+      <button class="icon-btn theme-toggle" id="themeToggle" aria-label="Switch theme" data-testid="theme-toggle-btn">
+        <span class="theme-icon" id="themeIcon">◐</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Landing / Hero -->
+  <section class="hero" id="hero" data-testid="hero-section">
+    <div class="hero-inner">
+      <div class="hero-copy">
+        <p class="eyebrow">Futuristic scientific atelier</p>
+        <h2 class="headline">
+          Explore <em>any</em> compound<br/>
+          in <span class="grad">cinematic 3D</span>.
+        </h2>
+        <p class="subhead">
+          Type a name, formula, ion or SMILES — and we'll resolve it through PubChem,
+          a local parser, or our VSEPR engine. Fully interactive, scientifically honest.
+        </p>
+      </div>
+
+      <!-- Hero molecule canvas -->
+      <div class="hero-stage" id="heroStage" aria-hidden="true">
+        <div class="orbital-ring o1"></div>
+        <div class="orbital-ring o2"></div>
+        <div class="orbital-ring o3"></div>
+      </div>
+    </div>
+
+    <!-- Search -->
+    <div class="search-wrap">
+      <div class="search-shell" data-testid="search-shell">
+        <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>
+        </svg>
+        <input id="searchInput" type="text" autocomplete="off" spellcheck="false"
+               placeholder="Try: caffeine · C6H12O6 · [Fe(CN)6]3- · benzene · XeOF2 · NaCl"
+               aria-label="Search compounds" data-testid="search-input" />
+        <button class="pill-btn" id="searchBtn" data-testid="search-submit-btn">
+          <span>Explore</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M5 12h14M13 5l7 7-7 7"/>
+          </svg>
+        </button>
+        <button class="ghost-btn" id="surpriseBtn" title="Surprise me" data-testid="surprise-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+          </svg>
+          Surprise me
+        </button>
+      </div>
+      <div class="autocomplete" id="autocompleteList" role="listbox" data-testid="autocomplete-list"></div>
+      <div class="recents" id="recents" data-testid="recents-list"></div>
+    </div>
+
+    <!-- Example library -->
+    <div class="library" data-testid="library-section">
+      <div class="lib-tabs" role="tablist">
+        <button class="lib-tab active" data-cat="organic" role="tab" data-testid="lib-tab-organic">Organic</button>
+        <button class="lib-tab" data-cat="inorganic" role="tab" data-testid="lib-tab-inorganic">Inorganic</button>
+        <button class="lib-tab" data-cat="physical" role="tab" data-testid="lib-tab-physical">Physical / Crystal</button>
+        <button class="lib-tab" data-cat="coordination" role="tab" data-testid="lib-tab-coordination">Coordination</button>
+      </div>
+      <div class="lib-grid" id="libGrid" data-testid="lib-grid"></div>
+    </div>
+  </section>
+
+  <!-- Workspace -->
+  <main class="workspace" id="workspace" hidden data-testid="workspace">
+    <!-- 3D Stage -->
+    <section class="stage-wrap">
+      <div class="stage-header">
+        <div class="stage-title">
+          <button class="back-btn" id="backBtn" data-testid="back-btn" title="Back to gallery">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+          </button>
+          <div>
+            <h3 id="compoundName" data-testid="compound-name">—</h3>
+            <code id="compoundFormula" class="mono" data-testid="compound-formula">—</code>
+          </div>
+        </div>
+        <span class="badge" id="tierBadge" data-testid="tier-badge">
+          <span class="dot"></span><span id="tierText">—</span>
+        </span>
+      </div>
+
+      <div class="stage-controls" data-testid="stage-controls">
+        <div class="seg" role="group" aria-label="Visualization style">
+          <button data-style="ball-stick" class="active" data-testid="style-ball-stick">Ball &amp; stick</button>
+          <button data-style="space-fill" data-testid="style-space-fill">Space-fill</button>
+          <button data-style="stick" data-testid="style-stick">Sticks</button>
+          <button data-style="wireframe" data-testid="style-wireframe">Wire</button>
+          <button data-style="electrostatic" data-testid="style-electrostatic">χ-color</button>
+        </div>
+        <div class="seg" role="group" aria-label="View dimension">
+          <button data-dim="3d" class="active" data-testid="dim-3d">3D</button>
+          <button data-dim="2d" data-testid="dim-2d">2D</button>
+        </div>
+        <div class="toggles">
+          <label class="chk" data-testid="toggle-labels"><input type="checkbox" id="toggleLabels"/> Labels</label>
+          <label class="chk" data-testid="toggle-lonepairs"><input type="checkbox" id="toggleLonePairs" checked/> Lone pairs</label>
+          <label class="chk" data-testid="toggle-dipole"><input type="checkbox" id="toggleDipole" checked/> Dipole</label>
+          <label class="chk" data-testid="toggle-rotate"><input type="checkbox" id="toggleRotate"/> Auto-rotate</label>
+        </div>
+        <div class="icon-row">
+          <button class="icon-btn" id="measureBtn" title="Measure (click two atoms)" data-testid="measure-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7l4-4 14 14-4 4zM7 7l3 3M10 10l3 3"/></svg>
+          </button>
+          <button class="icon-btn" id="resetBtn" title="Reset view" data-testid="reset-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 3-6.7M3 4v6h6"/></svg>
+          </button>
+          <button class="icon-btn" id="fullscreenBtn" title="Fullscreen" data-testid="fullscreen-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="stage" id="stage" data-testid="three-stage">
+        <div class="svg2d" id="svg2d" hidden></div>
+        <div class="loader" id="loader" hidden>
+          <div class="orbital-loader"><span></span><span></span><span></span></div>
+          <p>Resolving structure…</p>
+        </div>
+        <div class="empty-hint" id="emptyHint" hidden>
+          <h4>Nothing matched that query.</h4>
+          <p>Try one of these: <button data-sug="caffeine" class="sug">caffeine</button>
+            <button data-sug="XeOF2" class="sug">XeOF2</button>
+            <button data-sug="[Fe(CN)6]3-" class="sug">[Fe(CN)6]3-</button>
+            <button data-sug="NaCl" class="sug">NaCl</button></p>
+        </div>
+        <div class="measure-readout" id="measureReadout" hidden></div>
+      </div>
+    </section>
+
+    <!-- Details Dashboard -->
+    <aside class="panel" id="panel" data-testid="details-panel">
+      <nav class="panel-tabs" role="tablist">
+        <button class="ptab active" data-tab="overview" data-testid="tab-overview">Overview</button>
+        <button class="ptab" data-tab="structure" data-testid="tab-structure">Structure</button>
+        <button class="ptab" data-tab="physical" data-testid="tab-physical">Physical</button>
+        <button class="ptab" data-tab="composition" data-testid="tab-composition">Composition</button>
+        <button class="ptab" data-tab="safety" data-testid="tab-safety">Safety</button>
+        <button class="ptab" data-tab="export" data-testid="tab-export">Export</button>
+      </nav>
+
+      <div class="panel-body">
+        <section class="pane active" data-pane="overview" data-testid="pane-overview"></section>
+        <section class="pane" data-pane="structure" data-testid="pane-structure"></section>
+        <section class="pane" data-pane="physical" data-testid="pane-physical"></section>
+        <section class="pane" data-pane="composition" data-testid="pane-composition"></section>
+        <section class="pane" data-pane="safety" data-testid="pane-safety"></section>
+        <section class="pane" data-pane="export" data-testid="pane-export"></section>
+      </div>
+    </aside>
+  </main>
+
+  <div class="toast" id="toast" role="status" aria-live="polite" data-testid="toast"></div>
+
+  <script src="script.js" defer></script>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a440dde0efce8ef4',t:'MTc5MDkxNDMyNA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v31edd6df95cf4e85bb4c19e7a9bdbcba1788362987495" integrity="sha512-iIg7k2xntmwu6/uSb5tpc/hySgZc4eoL31yB29W6tJFo2akwjPWcEqnCEdJvGexCL0KEQwVYv5BlowfhVz26hg==" data-cf-beacon='{"version":"2024.11.0","token":"7f7b0fd8732c4326aae4b9d58d5c514a","spa":2}' crossorigin="anonymous"></script>
+</body>
+</html>
