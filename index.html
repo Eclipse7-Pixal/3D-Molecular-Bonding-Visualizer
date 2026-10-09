@@ -11,7 +11,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
 
-  <!-- Three.js r128 (pinned via cdnjs; still ships UMD examples/js) -->
+  <!-- Three.js r128 -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/renderers/CSS2DRenderer.js" defer></script>
@@ -19,7 +19,7 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <!-- Aurora + particle background -->
+  <!-- Background -->
   <div class="aurora" aria-hidden="true">
     <div class="aurora-blob b1"></div>
     <div class="aurora-blob b2"></div>
@@ -52,7 +52,7 @@
     </div>
   </header>
 
-  <!-- Landing / Hero -->
+  <!-- Hero Section -->
   <section class="hero" id="hero" data-testid="hero-section">
     <div class="hero-inner">
       <div class="hero-copy">
@@ -62,12 +62,10 @@
           in <span class="grad">cinematic 3D</span>.
         </h2>
         <p class="subhead">
-          Type a name, formula, ion or SMILES — and we'll resolve it through PubChem,
-          a local parser, or our VSEPR engine. Fully interactive, scientifically honest.
+          Type a name, formula, ion or SMILES — resolved via PubChem, local rules, or our VSEPR engine.
         </p>
       </div>
 
-      <!-- Hero molecule canvas -->
       <div class="hero-stage" id="heroStage" aria-hidden="true">
         <div class="orbital-ring o1"></div>
         <div class="orbital-ring o2"></div>
@@ -115,7 +113,6 @@
 
   <!-- Workspace -->
   <main class="workspace" id="workspace" hidden data-testid="workspace">
-    <!-- 3D Stage -->
     <section class="stage-wrap">
       <div class="stage-header">
         <div class="stage-title">
@@ -205,6 +202,5 @@
   <div class="toast" id="toast" role="status" aria-live="polite" data-testid="toast"></div>
 
   <script src="script.js" defer></script>
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a440dde0efce8ef4',t:'MTc5MDkxNDMyNA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v31edd6df95cf4e85bb4c19e7a9bdbcba1788362987495" integrity="sha512-iIg7k2xntmwu6/uSb5tpc/hySgZc4eoL31yB29W6tJFo2akwjPWcEqnCEdJvGexCL0KEQwVYv5BlowfhVz26hg==" data-cf-beacon='{"version":"2024.11.0","token":"7f7b0fd8732c4326aae4b9d58d5c514a","spa":2}' crossorigin="anonymous"></script>
 </body>
 </html>
