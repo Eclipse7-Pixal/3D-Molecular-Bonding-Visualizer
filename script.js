@@ -745,7 +745,7 @@ const Scene = {
         ? new THREE.MeshBasicMaterial({color, wireframe:true})
         : new THREE.MeshPhysicalMaterial({color, roughness:0.35, metalness:0.1, clearcoat:0.4});
       const m = new THREE.Mesh(geom, mat);
-      m.position.set(...a.pos.map((v,i)=>v-[cx,cy,cz][i]));
+      m.position.set(...a.pos); // <--- FIXED: a.pos is already correctly centered
       m.userData = {atomIndex: idx, el: a.el};
       this.molGroup.add(m);
       atomMeshes.push(m);
@@ -867,37 +867,44 @@ const Scene = {
 /* 2D SVG renderer (projection of 3D coordinates) */
 function render2D(compound){
   const svgDiv = $("#svg2d"); svgDiv.innerHTML="";
+  if (!compound || !compound.atoms || !compound.atoms.length) return;
   const {atoms,bonds} = compound;
   const xs=atoms.map(a=>a.pos[0]), ys=atoms.map(a=>a.pos[1]);
   const minX=Math.min(...xs), maxX=Math.max(...xs);
   const minY=Math.min(...ys), maxY=Math.max(...ys);
-  const W=520, H=420, pad=40;
-  const sx=(W-2*pad)/Math.max(0.01,maxX-minX);
-  const sy=(H-2*pad)/Math.max(0.01,maxY-minY);
-  const s=Math.min(sx,sy);
-  const px=p=>pad+(p[0]-minX)*s;
-  const py=p=>H-pad-(p[1]-minY)*s;
-  let svg=`<svg viewBox="0 0 ${W} ${H}" width="100%" xmlns="http://www.w3.org/2000/svg">`;
-bonds.forEach(b=>{
-  const a1=atoms[b.a].pos, a2=atoms[b.b].pos;
-  const stroke="currentColor"; const w=b.order===3?3:b.order===2?2:b.order===1.5?2:1.5;
-  svg+=`<line x1="${px(a1[0])}" y1="${py(a1[1])}" x2="${px(a2[0])}" y2="${py(a2[1])}" stroke="${stroke}" stroke-width="${w}" stroke-opacity="0.7"/>`;
-  if (b.order===2){
-    svg+=`<line x1="${px(a1[0])+4}" y1="${py(a1[1])-4}" x2="${px(a2[0])+4}" y2="${py(a2[1])-4}" stroke="${stroke}" stroke-width="1.3" stroke-opacity="0.6"/>`;
-  }
-});
-atoms.forEach(a=>{
-  const el=EL[a.el]||{color:"#999"};
-  const show = a.el!=="C" || atoms.length<=6;
-  if (show){
-    svg+=`<circle cx="${px(a.pos[0])}" cy="${py(a.pos[1])}" r="12" fill="${el.color}" stroke="rgba(0,0,0,.3)"/>`;
-    svg+=`<text x="${px(a.pos[0])}" y="${py(a.pos[1])+4}" font-family="JetBrains Mono" font-size="12" text-anchor="middle" fill="#111">${a.el}</text>`;
-  }
-});
+  const W=520, H=420, pad=50;
+  
+  const xRange = maxX - minX || 1;
+  const yRange = maxY - minY || 1;
+  const sx=(W-2*pad)/xRange;
+  const sy=(H-2*pad)/yRange;
+  const s=Math.min(sx, sy);
+  const cx=(minX+maxX)/2;
+  const cy=(minY+maxY)/2;
+  
+  const px=x=>W/2 + (x - cx)*s;
+  const py=H/2 - (y - cy)*s; // inverted Y for SVG screen space
+
+  let svg=`<svg viewBox="0 0 ${W} ${H}" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">`;
+  
+  bonds.forEach(b=>{
+    const a1=atoms[b.a].pos, a2=atoms[b.b].pos;
+    const w=b.order===3?3:b.order===2?2:b.order===1.5?2:1.5;
+    svg+=`<line x1="${px(a1[0])}" y1="${py(a1[1])}" x2="${px(a2[0])}" y2="${py(a2[1])}" stroke="var(--text-dim, #7d82a3)" stroke-width="${w}" stroke-linecap="round"/>`;
+    if (b.order===2){
+      svg+=`<line x1="${px(a1[0])+4}" y1="${py(a1[1])-4}" x2="${px(a2[0])+4}" y2="${py(a2[1])-4}" stroke="var(--text-dim, #7d82a3)" stroke-width="1.3" stroke-linecap="round"/>`;
+    }
+  });
+
+  atoms.forEach(a=>{
+    const el=EL[a.el]||{color:"#999"};
+    svg+=`<circle cx="${px(a.pos[0])}" cy="${py(a.pos[1])}" r="14" fill="${el.color}" stroke="var(--border-strong, #333)" stroke-width="1.5"/>`;
+    svg+=`<text x="${px(a.pos[0])}" y="${py(a.pos[1])+4}" font-family="Inter, sans-serif" font-weight="600" font-size="11" text-anchor="middle" fill="#0b0820">${a.el}</text>`;
+  });
+
   svg+=`</svg>`;
   svgDiv.innerHTML=svg;
 }
-
 /* Hero scene - small persistent 3D icon */
 function initHeroScene(){
   const el = $("#heroStage");
