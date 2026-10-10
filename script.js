@@ -773,10 +773,12 @@ const Scene = {
           : new THREE.MeshStandardMaterial({color: 0xbbbbbb, roughness:0.5});
         const m = new THREE.Mesh(g, mat);
         m.position.copy(start.clone().add(end).multiplyScalar(0.5)).add(perp.clone().multiplyScalar(off));
-        const axis = new THREE.Vector3(0, 1, 0);
-        m.quaternion.setFromUnitVectors(axis, dir.clone().normalize());
-        this.molGroup.add(m);
-    });
+            const axis = new THREE.Vector3(0, 1, 0);
+            m.quaternion.setFromUnitVectors(axis, dir.clone().normalize());
+            this.molGroup.add(m);
+          }); // <--- Closes offsets.forEach
+        });   // <--- Closes bonds.forEach (THIS WAS MISSING)
+
     // Lone pairs
     if (this.showLP && lonePairDirs && atomMeshes[0]){
       lonePairDirs.forEach(d=>{
